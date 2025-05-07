@@ -3,8 +3,7 @@
 
 
 void cbitTask( void *pvParameters )
-{//
-	int a;
+{
 	/*
 	 * 1. 클럭 검사
 	 * 2. Serial Loopback 검사
