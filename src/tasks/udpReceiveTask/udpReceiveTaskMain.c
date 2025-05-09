@@ -1,6 +1,7 @@
 
-void imuCommunicationTask( void *pvParameters )
+void udpReciveTaskMain( void *pvParameters )
 {
+
 /**
  * [imu 데이터 관리 서버에게 요청하여 데이터 수신]
  * -> 서버와 연결되어있다는 가정.
