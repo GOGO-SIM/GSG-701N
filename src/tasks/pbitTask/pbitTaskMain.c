@@ -1,6 +1,8 @@
+
+
 static int sPbitFail;
-//static ??? imuData;
-//static ??? seekerData;
+//static ??? gImuData;
+//static ??? gSeekerData;
 
 static void imuRxCallback(){
 	//imu 데이터 받아오기
