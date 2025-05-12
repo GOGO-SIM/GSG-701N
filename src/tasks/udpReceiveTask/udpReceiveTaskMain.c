@@ -1,21 +1,112 @@
+#include <stdint.h>
+#include <string.h>
 
-void udpReciveTaskMain( void *pvParameters )
+#define FALSE 0
+#define TRUE 1
+#define ERROR -1
+
+typedef struct sGsmpMH
 {
+	uint8_t startBit;
+	uint8_t startflag;
+	uint8_t msgId;
+	uint8_t srcId;
+	uint8_t destId;
+	uint8_t msgStat;
+	uint16_t msgLen;
 
-/**
- * [imu µ¥ÀÌÅÍ °ü¸® ¼­¹ö¿¡°Ô ¿äÃ»ÇÏ¿© µ¥ÀÌÅÍ ¼ö½Å]
- * -> ¼­¹ö¿Í ¿¬°áµÇ¾îÀÖ´Ù´Â °¡Á¤.
- * 1. ¿¬°áµÈ ¼ÒÄÏÀ» ÅëÇØ µ¥ÀÌÅÍ ¿äÃ»
- * 2. µ¥ÀÌÅÍ ¼ö½Å(block)
- * 3. µ¥ÀÌÅÍ ¹«°á¼º °Ë»ç ¶O½ºÅ©¸¦ ±ú¿î´Ù
- * 4. ÅÚ·¹¸ŞÆ®¸® ¹®ÀÚ¿­ »ı¼ºÇÏ¿© Å¥¿¡ »ğÀÔ
- * 5. ¹«°á¼º Ã¼Å© °á°ú È®ÀÎ
- * 	5-1. Åë°úÇÏÁö ¸øÇÑ °æ¿ì failCount += 1
- * 	5-2. failCount°¡ 5ÀÌ»óÀÎ °æ¿ì Á¾¸» ÇÃ·¡±× È°¼ºÈ­
- * 	5-3. ACB ¼Û½Å ÅÂ½ºÅ© ±ú¿ò
- * 6. Ç¥Àû°úÀÇ °Å¸®°¡ 1.5m ÀÌ³»ÀÎÁö Ã¼Å©
- * 	6-1. ÀÌ³»ÀÎ °æ¿ì Á¾¸» ÇÃ·¡±× È°¼ºÈ­
- * 	6-2. ACB ¼Û½Å ÅÂ½ºÅ© ±ú¿ò
- * 7. ÈŞ¸é(5ms)
- */
+} tGsmpMH;
+
+unsigned char gUdpBuffer[100];
+int8_t gUdpFailCount;
+int8_t gStatus;
+
+int checkCrc()
+{
+	int res;
+	uint16_t crc;
+
+	// 1. í—¤ë”í¬ê¸°ì™€ í˜ì´ë¡œë“œ ë’¤ crcë¥¼ ê²€ì‚¬
+	if (getCrc() == crc)
+		res = TRUE;
+	else
+		res = FALSE;
+	return res;
+}
+
+void activateFuze()
+{
+	printf("BOOM!");
+}
+
+void handleImuMsg()
+{
+	// 1. IMU payloadì— memcpy
+	tImuPayload cur;
+	memcpy(&cur, msg + sizeof(tGsmpMH), sizeof(tImuPayload));
+	// 2. ê°’ ë²”ìœ„ ì²´í¬
+	if (checkImuData(cur) == ERROR)
+	{
+		gImuDataFailCount += 1;
+		if (gImuDataFailCount > 10)
+			activateFuze();
+	}
+	else
+	{
+		gImuDataFailCount = 0;
+		// 3. ë°ì´í„° ì €ì¥
+		gImuData = cur; // TODO: í•„ìš”í•œ ê²½ìš° TICKì„ í•¨ê»˜ ì €ì¥í•˜ê¸°
+	}
+	// 4. í•­ë²• íƒœìŠ¤í¬ resume
+	taskResume(navigationTaskHandle);
+}
+
+void handleSeekerMsg()
+{
+	// 1. Seeker payloadì— memcpy
+	tSeekerPayload cur;
+	memcpy(&cur, msg + sizeof(tGsmpMH), sizeof(tSeekerPayload));
+	// 2. ê°’ ë²”ìœ„ ì²´í¬
+	if (checkSeekerData(cur) == ERROR)
+	{
+		gSeekerDataFailCount += 1;
+		if (gSeekerDataFailCount > 10)
+			activateFuze();
+	}
+	else
+	{
+		gSeekerDataFailCount = 0;
+		// 3. ë°ì´í„° ì €ì¥
+		SeekerData = cur;
+	}
+}
+
+void udpReceiveTaskMain( void *pvParameters )
+{
+	tGsmpMH curHeader;
+	// 1. ë©”ì‹œì§€ í—¤ë”ì— ì €ì¥
+	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
+	// 2. CRC ì²´í¬
+	if (checkCrc() == FALSE)
+	{
+		gUdpFailCount += 1;
+		if (gUdpFailCount > 10)
+		{
+			// 2-1. ì‹ ê´€ ì‘ë™
+			activateFuze();
+		}
+	}
+	else
+	{
+		gUdpFailCount = 0;
+		// 3. message_id ì²´í¬
+		if (curHeader.msgId == IMU_MSG_ID)
+		{
+			handleImuMsg();
+		}
+		else if (curHeader.msgId == SEEKER_MSG_ID)
+		{
+			handleSeekerMsg();
+		}
+	}
 }
