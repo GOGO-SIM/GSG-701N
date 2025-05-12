@@ -1,6 +1,6 @@
+#define ECHOING_VALUE 19980398
 
-
-static int sPbitFail;
+static int sPassPbitFlag; // ok == TRUE, false == FALSE
 //static ??? gImuData;
 //static ??? gSeekerData;
 
@@ -66,8 +66,10 @@ static void checkUart()
 	// 1. UART 초기화
 	UartInit();
 
+	// TODO: loop back 검사 추가하기(optional)
+
 	// 2. 송신 버퍼 준비
-	char txData = 'A';
+	int txData = ECHOING_VALUE;
 
 	// 3. 데이터 송신
 	UartSend(txData);
@@ -76,7 +78,7 @@ static void checkUart()
 	while (!UartIsDataAvailable());
 
 	// 5. 수신된 데이터 읽기
-	char rxData = UartReceive();
+	int rxData = UartReceive();
 
 	// 6. 송신 데이터와 수신 데이터 비교
 	if (rxData != txData)
@@ -104,8 +106,10 @@ static void checkNetwork(){
 
 	//2.데이터 수신 대기
 
-	while(); //둘다 도착하거나, 에러 발생시 까지 대기 설계하기 나름
+	while ();
+	//둘다 도착하거나, 에러 발생시 까지 대기 설계하기 나름
 	//timerOvfCallback()발생시 에러 발생 flag set
+	// -> UDP rx 함수에 timeout 걸 수 있을 것 같다.
 
 	//3.Imu / Seeker 데이터 도착시 인터럽트 발생 후 수신
 	//imuRxCallback() 과 seekerRxCallback()에 정의
@@ -114,6 +118,16 @@ static void checkNetwork(){
 	//-> 받아야 할 값이 왔는지 확인
 
 	//5.타이머 종료 및 초기화
+
+	// [수정 제안] TODO: 수신을 한 태스크에서 관리할지, PBIT 시에만 polling 방식으로 처리할지
+	while (!IMU_RX && !SEEKER_RX)
+	{
+		// receive(buffer, timeout);
+		// 메시지 헤더 검사(CRC포함)
+		// 페이로드 저장 및 확인
+		// pbit 결과 세팅
+		//	-> timeout 시 네트워크 에러로 간주
+	}
 }
 
 void pbitTaskMain( void *pvParameters )
@@ -134,7 +148,7 @@ void pbitTaskMain( void *pvParameters )
 	// 1. 전압을 체크한다.
 	checkPower();
 
-	if (!sPbitFail)
+	if (sPassPbitFlag == TRUE)
 	{
 	// 2. Uart 상태를 체크한다
 		checkUart();
@@ -144,7 +158,7 @@ void pbitTaskMain( void *pvParameters )
 	}
 
 	// 4. 다음task를 깨운다.
-	if (!sPbitFail)
+	if (sPassPbitFlag == TRUE)
 	{
 	// xTaskResume(콜드런치 점화 대기 상태 태스크);
 	}
