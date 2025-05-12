@@ -1,5 +1,5 @@
 
-void uartSendTask( void *pvParameters )
+void acbCommunicationTask( void *pvParameters )
 {
 
 /**
