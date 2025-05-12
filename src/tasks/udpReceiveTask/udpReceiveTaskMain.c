@@ -1,5 +1,10 @@
 #include <stdint.h>
 #include <string.h>
+
+#define FALSE 0
+#define TRUE 1
+#define ERROR -1
+
 typedef struct sGsmpMH
 {
 	uint8_t startBit;
@@ -25,7 +30,7 @@ int checkCrc()
 	if (getCrc() == crc)
 		res = TRUE;
 	else
-		res = FALSE:
+		res = FALSE;
 	return res;
 }
 
@@ -50,7 +55,7 @@ void handleImuMsg()
 	{
 		gImuDataFailCount = 0;
 		// 3. 데이터 저장
-		ImuData = cur;
+		gImuData = cur; // TODO: 필요한 경우 TICK을 함께 저장하기
 	}
 	// 4. 항법 태스크 resume
 	taskResume(navigationTaskHandle);
@@ -82,7 +87,7 @@ void udpReceiveTaskMain( void *pvParameters )
 	// 1. 메시지 헤더에 저장
 	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
 	// 2. CRC 체크
-	if (checkCrc())
+	if (checkCrc() == FALSE)
 	{
 		gUdpFailCount += 1;
 		if (gUdpFailCount > 10)
