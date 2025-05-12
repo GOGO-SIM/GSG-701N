@@ -1,32 +1,15 @@
 #include <stdint.h>
 #include <string.h>
+#include "gsgTypes.h"
+#include "taskMain.h"
 
-#define FALSE 0
-#define TRUE 1
-#define ERROR -1
-
-typedef struct sGsmpMH
-{
-	uint8_t startBit;
-	uint8_t startflag;
-	uint8_t msgId;
-	uint8_t srcId;
-	uint8_t destId;
-	uint8_t msgStat;
-	uint16_t msgLen;
-
-} tGsmpMH;
-
-unsigned char gUdpBuffer[100];
-int8_t gUdpFailCount;
-int8_t gStatus;
+uint8_t gUdpBuffer[100];
 
 int checkCrc()
 {
 	int res;
 	uint16_t crc;
 
-	// 1. 헤더크기와 페이로드 뒤 crc를 검사
 	if (getCrc() == crc)
 		res = TRUE;
 	else
@@ -34,72 +17,73 @@ int checkCrc()
 	return res;
 }
 
-void activateFuze()
+// explode �������� ����
+static void explode()
 {
 	printf("BOOM!");
 }
 
 void handleImuMsg()
 {
-	// 1. IMU payload에 memcpy
+	// 1. IMU payload memcpy
 	tImuPayload cur;
-	memcpy(&cur, msg + sizeof(tGsmpMH), sizeof(tImuPayload));
-	// 2. 값 범위 체크
+	memcpy(&cur, msg + sizeof(tGsmpMessageHeader), sizeof(tImuPayload));
+	// 2. check IMU Data
 	if (checkImuData(cur) == ERROR)
 	{
-		gImuDataFailCount += 1;
-		if (gImuDataFailCount > 10)
-			activateFuze();
+		gFailCount[IMU_DATA_FAIL] += 1;
+		if (gFailCount[IMU_DATA_FAIL] > 10)
+			explode();
 	}
 	else
 	{
-		gImuDataFailCount = 0;
-		// 3. 데이터 저장
-		gImuData = cur; // TODO: 필요한 경우 TICK을 함께 저장하기
+		gFailCount[IMU_DATA_FAIL] = 0;
+		// 3. save valid IMU data
+		gImuData = cur; // TODO: TIMER TICK can be added.
 	}
-	// 4. 항법 태스크 resume
+	// 4. Resume navigation Task
 	taskResume(navigationTaskHandle);
 }
 
 void handleSeekerMsg()
 {
-	// 1. Seeker payload에 memcpy
+	// 1. Seeker payload  memcpy
 	tSeekerPayload cur;
-	memcpy(&cur, msg + sizeof(tGsmpMH), sizeof(tSeekerPayload));
-	// 2. 값 범위 체크
+	memcpy(&cur, msg + sizeof(tGsmpMessageHeader), sizeof(tSeekerPayload));
+	// 2. check Seeker Data
 	if (checkSeekerData(cur) == ERROR)
 	{
-		gSeekerDataFailCount += 1;
-		if (gSeekerDataFailCount > 10)
-			activateFuze();
+		gFailCount[SEEKER_DATA_FAIL] += 1;
+		if (gFailCount[SEEKER_DATA_FAIL] > 10)
+			explode();
 	}
 	else
 	{
-		gSeekerDataFailCount = 0;
-		// 3. 데이터 저장
+		gFailCount[SEEKER_DATA_FAIL] = 0;
+		// 3. save valid Seeker data
 		SeekerData = cur;
 	}
 }
 
 void udpReceiveTaskMain( void *pvParameters )
 {
-	tGsmpMH curHeader;
-	// 1. 메시지 헤더에 저장
+	tGsmpMessageHeader curHeader;
+	// 1. gsmp header memcpy
 	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
-	// 2. CRC 체크
+	// 2. check crc
 	if (checkCrc() == FALSE)
 	{
-		gUdpFailCount += 1;
-		if (gUdpFailCount > 10)
+		gFailCount[UDP_FAIL] += 1;
+		if (gFailCount[UDP_FAIL] > 10)
 		{
-			// 2-1. 신관 작동
-			activateFuze();
+			// 2-1. if failure accumulated 10 times, then explode
+			explode();
 		}
 	}
 	else
 	{
-		gUdpFailCount = 0;
-		// 3. message_id 체크
+		gFailCount[UDP_FAIL] = 0;
+		// 3. process data based on message type
 		if (curHeader.msgId == IMU_MSG_ID)
 		{
 			handleImuMsg();
