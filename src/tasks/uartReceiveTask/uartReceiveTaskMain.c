@@ -17,6 +17,8 @@ typedef struct _sMessageHeader
 
 static int recvFlag;
 
+void explode();
+
 void uartReceiveTaskMain() 
 {
 	/*
@@ -41,6 +43,7 @@ void uartReceiveTaskMain()
 	messageStatus = TRUE;
 
 	// 2. gsmpMsgHeader 변수에 memcpy한다.
+	// memcpy(&gsmpMsgHeader, gUartBuffer, sizeof(gsmpMsgHeader));
 	getUartMsg(gsmpMsgHeader);
 
 	// 3. CRC 검사를 진행한다.
@@ -69,5 +72,12 @@ void uartReceiveTaskMain()
 	// 5. gUartFailCount = 0
 	gUartFailCount = 0;
 	// 6. 종료
+	return;
+}
+
+
+void explode()
+{
+	printf("explode\n");
 	return;
 }
