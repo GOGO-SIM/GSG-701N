@@ -9,4 +9,5 @@ void navigationTaskMain( void *pvParameters )
 		// 3. guidance task resume
 		// task suspend
 	}
+
 }

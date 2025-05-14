@@ -1,7 +1,10 @@
+/**
+*
+*
+*/
 #include "gsgTypes.h"
 #include "taskMain.h"
 #include "FreeRTOS.h"
-#include "task.h"
 
 // Proportional Navigation 상수
 #define PN_GAIN         3.0       ///< 항법 상수 N (3 ~ 5 권장)
@@ -46,7 +49,7 @@ static tDVector3 vecCross(const tDVector3 a, const tDVector3 b)
 }
 
 /**
- * @brief 3D 벡터 v를 스칼라 s만큼 스케일링 (v * s)
+ * 3D 벡터 v를 스칼라 s만큼 스케일링 (v * s)
  */
 static tDVector3 vecScale(const tDVector3 v, const double s)
 {
@@ -59,11 +62,14 @@ static tDVector3 vecScale(const tDVector3 v, const double s)
 
 void vGuidanceTask(void *pvParameters)
 {
-    // 초기 LOS 벡터 저장
-    tDVector3 losPrev = {0.0, 0.0, 0.0};
+	// 1) 기준 시점 기록
+	TickType_t xLastWakeTime = xTaskGetTickCount();
 
-    // 첫 실행 시점 기록
-    TickType_t xLastWakeTime = xTaskGetTickCount();
+	// 2) 한 번만 실행: 첫 LOS 벡터 시드 세팅
+	tDVector3 losPrev = gSeekerData.los;
+
+	// 3) 첫 주기까지 대기 (200 ms)
+	vTaskDelayUntil(&xLastWakeTime, GUIDANCE_PERIOD);
 
     while(1)
     {
@@ -76,8 +82,8 @@ void vGuidanceTask(void *pvParameters)
         tDVector3 losRate  = vecScale(deltaLos, 1.0 / GUIDANCE_DT);
 
         // PN 법칙 적용: a_cmd = N * V * (losNow × losRate)
-        tDVector3 navTerm = vecCross(losNow, losRate);
-        gAccCommand = vecScale(navTerm, PN_GAIN * MISSILE_SPEED);
+        tDVector3 losAngVelocity = vecCross(losNow, losRate);
+        gAccCommand = vecScale(losAngVelocity, PN_GAIN * MISSILE_SPEED);
 
         // 다음 주기 계산을 위해 이전 LOS 갱신
         losPrev = losNow;
