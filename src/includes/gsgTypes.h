@@ -8,6 +8,14 @@
 #define TRUE 1
 #define ERROR -1
 
+typedef struct sGsmpMsg
+{
+	tGsmpMessageHeader header;
+	void* payload;
+	uint_16 CRC;
+
+} tGsmpMsg;
+
 typedef struct _tDVector3
 {
 	double x;
@@ -25,7 +33,6 @@ typedef struct _tDVector4
 
 typedef struct _tGsmpMessageHeader
 {
-	uint8_t startBit;
 	uint8_t startflag;
 	uint8_t msgId;
 	uint8_t srcId;
@@ -67,12 +74,13 @@ typedef struct _tTelemetryData
 {
 	uint_8 bitFlags;
 	int cnt;
-	double dist;
 	tImuPayload imuPayload;
 	tSeekerPayload seekerPayload;
 	tDVector4 Quarternion;
+	tDVector3 losVector;
 	tDVector3 accCmd;
 	tAcbPayload ctlCmd;
+
 } tTelemetryData;
 
 #endif
