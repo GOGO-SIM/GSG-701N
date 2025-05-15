@@ -25,7 +25,6 @@ typedef struct _tDVector4
 
 typedef struct _tGsmpMessageHeader
 {
-	uint8_t startBit;
 	uint8_t startflag;
 	uint8_t msgId;
 	uint8_t srcId;
@@ -65,7 +64,7 @@ typedef struct _tAccCmd
 
 typedef struct _tTelemetryData
 {
-	uint_8 bitFlags;
+	uint8_t bitFlags;
 	int cnt;
 	double dist;
 	tImuPayload imuPayload;
