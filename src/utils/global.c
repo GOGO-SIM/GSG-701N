@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/utils/global.c
 #include <global.h>
 
 /**
@@ -30,6 +31,14 @@ const uint8_t START_FLAG = 0x7E;
  */
 uint32_t gFailCount[4];
 
+=======
+#pragma once
+#ifndef _TASK_MAIN_H_
+#define _TASK_MAIN_H_
+
+#include <stdint.h>
+#include "gsgTypes.h"
+>>>>>>> 3253550889554d829f89e260058b96eb9618c71d:src/includes/taskMain.h
 
 /**
  * gImuData
