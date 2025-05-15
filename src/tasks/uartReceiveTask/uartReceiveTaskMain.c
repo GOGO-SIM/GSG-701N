@@ -1,23 +1,15 @@
 #include <stdio.h>
-
-const int FALSE = 0;
-const int TRUE = 1;
+#include <string.h>
+#include "global.h"
+#include "gsgTypes.h"
 
 extern int gUartFailCount;
 
-typedef struct _sMessageHeader
-{
-	uint8_t startflag;
-	uint8_t msgId;
-	uint8_t srcId;
-	uint8_t destId;
-	uint8_t msgStat;
-	uint16_t msgLen;
-}sMessageHeader;
 
 static int recvFlag;
 
 void explode();
+int checkCRC(tGsmpMessageHeader examp, uint16_t size);
 
 void uartReceiveTaskMain() 
 {
@@ -33,7 +25,8 @@ void uartReceiveTaskMain()
 	 * */
 	int isCRCSuccess;
 	int messageStatus;
-	sMessageHeader gsmpMsgHeader;
+	tGsmpMessageHeader gsmpMsgHeader;
+	uint8_t* gUartBuffer;
 
 	// 1. recvFlag는 true로 설정한다.
 	recvFlag = TRUE;
@@ -44,7 +37,7 @@ void uartReceiveTaskMain()
 	// getUartMsg(gsmpMsgHeader); -> TODO: 초기화 시 UART RX interrupt를 설정해야 한다.
 
 	// 3. CRC 검사를 진행한다.
-	isCRCSuccess = checkCRC(gsmpMsgHeader);
+	isCRCSuccess = checkCRC(gsmpMsgHeader, sizeof(gsmpMsgHeader));
 	// 3.1. CRC 검사가 일치하는지 검사한다.
 	// 3.1.1. 일치하지 않는 경우 gUartFailCount += 1
 
@@ -55,17 +48,22 @@ void uartReceiveTaskMain()
 	 */
 	if (isCRCSuccess == FALSE || messageStatus != OK)
 	{
-		gUartFailCount += 1;
+		gFailCount[UART_FAIL] += 1;
 		// 3.1.2. gUartFailCount > 10 이라면 폭파 진행한다.
-		if (gUartFailCount > 10)
+		if (gFailCount[UART_FAIL] > 10)
 		{
 			explode();
 		}
 	}
 	// 4. gUartFailCount = 0
-	gUartFailCount = 0;
+	gFailCount[UART_FAIL] = 0;
 	// 5. 종료
 	return;
+}
+
+int checkCRC(tGsmpMessageHeader examp, uint16_t size)
+{
+	return 1;
 }
 
 

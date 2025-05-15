@@ -1,4 +1,5 @@
-
+#include "FreeRTOS.h"
+#include "global.h"
 /**
  * [각 태스크의 마감 시간 설정]
  */
@@ -28,7 +29,7 @@ void schedulingTaskMain(void *pvParameters)
 		xTaskNotifyGive(xGuidanceTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(GUIDANCE_DEADLINE));
 		// 5. 조종 태스크 give && delay
-		xTaskNotifyGive(xcontrolTaskHandle);
+		xTaskNotifyGive(xControlTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(CONTOL_DEADLINE));
 		// 6. UART 전송 태스크 give && delay
 		xTaskNotifyGive(xUartSendTaskHandle);

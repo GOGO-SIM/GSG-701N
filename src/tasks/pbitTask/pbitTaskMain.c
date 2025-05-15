@@ -1,8 +1,12 @@
+#include "global.h"
+
 #define ECHOING_VALUE 19980398
 
 static int sPassPbitFlag; // ok == TRUE, false == FALSE
 //static ??? gImuData;
 //static ??? gSeekerData;
+
+void UartInit();
 
 static void imuRxCallback(){
 	//imu 데이터 받아오기
@@ -13,8 +17,15 @@ static void seekerRxCallback(){
 }
 
 static void timerOvfCallback(){
-	sPbitFail |= setErrorFlag;
+	// ERR : pbit Fail Success check
+	//gGcuStatus |= setErrorFlag;
 }
+
+void UartSend(int txData);
+int UartReceive();
+int UartIsDataAvailable();
+int xADC_GetData();
+double xADC_ConvertToVoltage(int rawValue);
 
 static int checkPower()
 {
@@ -44,7 +55,8 @@ static int checkPower()
 	//5.임계값 비교
 	if (measuredVoltage < 4.5)
 	{
-		sPbitFail |= setErrorFlag;
+		// ERR : pbit Fail Success check
+		//sPbitFail |= setErrorFlag;
 	}
 }
 
@@ -83,7 +95,8 @@ static void checkUart()
 	// 6. 송신 데이터와 수신 데이터 비교
 	if (rxData != txData)
 	{
-	   sPbitFail |= setErrorFlag;
+		// ERR : pbit Fail Success check
+	   //sPbitFail |= setErrorFlag;
 	}
 }
 
@@ -106,7 +119,7 @@ static void checkNetwork(){
 
 	//2.데이터 수신 대기
 
-	while ();
+	for(;;){}
 	//둘다 도착하거나, 에러 발생시 까지 대기 설계하기 나름
 	//timerOvfCallback()발생시 에러 발생 flag set
 	// -> UDP rx 함수에 timeout 걸 수 있을 것 같다.
@@ -120,6 +133,8 @@ static void checkNetwork(){
 	//5.타이머 종료 및 초기화
 
 	// [수정 제안] TODO: 수신을 한 태스크에서 관리할지, PBIT 시에만 polling 방식으로 처리할지
+	// ERR : IMU_RX & SEEKER_RX 정의
+	/*
 	while (!IMU_RX && !SEEKER_RX)
 	{
 		// receive(buffer, timeout);
@@ -128,6 +143,7 @@ static void checkNetwork(){
 		// pbit 결과 세팅
 		//	-> timeout 시 네트워크 에러로 간주
 	}
+	*/
 }
 
 void pbitTaskMain( void *pvParameters )
@@ -169,4 +185,34 @@ void pbitTaskMain( void *pvParameters )
 
 	// 5. pbit task를 삭제한다.
 	// xTaskDelete(xHandlePbit);
+}
+
+void UartInit()
+{
+	return;
+}
+
+void UartSend(int txData)
+{
+	return;
+}
+
+int UartReceive()
+{
+	return TRUE;
+}
+
+int UartIsDataAvailable()
+{
+	return TRUE;
+}
+
+int xADC_GetData()
+{
+	return 1;
+}
+
+double xADC_ConvertToVoltage(int rawValue)
+{
+	return 0.0f;
 }

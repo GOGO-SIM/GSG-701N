@@ -1,4 +1,11 @@
+#include <stdio.h>
+#include "FreeRTOS.h"
+#include "gsgTypes.h"
+#include "global.h"
+
 static int sPassCbitFlag = TRUE; // 통과 == TRUE, 실패 == FALSE
+
+int xADC_IsConversionDone();
 
 static void checkPower()
 {
@@ -17,10 +24,15 @@ static void checkPower()
     double measuredVoltage = xADC_ConvertToVoltage(rawValue);
 
 	//3.임계값 비교
-	if (measuredVoltage < 특정 값)
+	if (measuredVoltage < gVoltage1)
 	{
 		sPassCbitFlag == FALSE;
 	}
+}
+
+int checkAllRegister()
+{
+	return TRUE;
 }
 
 static void checkRegister()
@@ -31,12 +43,10 @@ static void checkRegister()
 	/*****************************[임시 구현]*****************************/
 
 	// 1. 모든레지스터 검사
-	if (레지스터중 하나라도 이상하면)
-
-	// 레지스터가 이상할때 set 되는지, 정상일때 set 되는지 아직 판단 불가
-
+	if (checkAllRegister() == TRUE)
 	{
-		sPassCbitFlag = FALSE
+		// 레지스터가 이상할때 set 되는지, 정상일때 set 되는지 아직 판단 불가
+		sPassCbitFlag = FALSE;
 	}
 }
 
@@ -48,8 +58,6 @@ void cbitTaskMain( void *pvParameters )
 	 * 3. 플래그 검사 및 폭발
 	 */
 	/*****************************[임시 구현]*****************************/
-
-	vTaskSuspend();
 	while(1)
 	{
 		// 1. 전압 검사
@@ -64,8 +72,14 @@ void cbitTaskMain( void *pvParameters )
 		{
 			//폭발한다.
 		}
-		vTaskResume(다음 태스크);
-		vTaskSuspend();
+		vTaskResume(xTelemetryTaskHandle);
+		vTaskSuspend(xCbitTaskHandle);
 	}
 
+}
+
+
+int xADC_IsConversionDone()
+{
+	return 1;
 }

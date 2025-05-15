@@ -1,10 +1,7 @@
 #include <stdio.h>
-#include<string.h>
-
-// 다항식, x^16 + x^12 + x^5 + 1
-const uint16_t polynomial = 0x1021;
-// 초기값
-const uint16_t defaultVal = 0x0000;
+#include <string.h>
+#include "global.h"
+#include "crc.h"
 
 // CRC설정 함수
 // 변환된 CRC 값 return
@@ -48,12 +45,12 @@ int checkCrc(void* recvData)
     uint16_t dataLen = sizeof(tGsmpMessageHeader) + header.msgLen;
 
     // 3. CRC 계산 (CRC 제외 범위만 계산)
-    uint16_t calcCrc = calcCrc(recvData, dataLen);
+    uint16_t crc = calcCrc(recvData, dataLen);
 
     // 4. 수신된 CRC 값 추출 (MSB 먼저)
     uint8_t* bytes = (uint8_t*)recvData;
     uint16_t recvCrc = (bytes[dataLen] << 8) | bytes[dataLen + 1];
 
     // 5. 비교
-    return (calcCrc == recvCrc) ? TRUE : FALSE;
+    return (crc == recvCrc) ? TRUE : FALSE;
 }

@@ -1,23 +1,28 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include "gsgTypes.h"
-#include "taskMain.h"
+#include "global.h"
+#include "crc.h"
 
 uint8_t gUdpBuffer[100];
+int checkImuData(tImuPayload cur);
+int checkSeekerData(tSeekerPayload cur);
+uint16_t getCrc();
+//int checkCrc()
+//{
+//	int res;
+//	uint16_t crc;
+//	crc = 0;
+//
+//	if (getCrc() == crc)
+//		res = TRUE;
+//	else
+//		res = FALSE;
+//	return res;
+//}
 
-int checkCrc()
-{
-	int res;
-	uint16_t crc;
-
-	if (getCrc() == crc)
-		res = TRUE;
-	else
-		res = FALSE;
-	return res;
-}
-
-// explode Àü¿ª¿¡¼­ °ü¸®
+// explode ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 static void explode()
 {
 	printf("BOOM!");
@@ -27,7 +32,8 @@ void handleImuMsg()
 {
 	// 1. IMU payload memcpy
 	tImuPayload cur;
-	memcpy(&cur, msg + sizeof(tGsmpMessageHeader), sizeof(tImuPayload));
+	// ERR : msg undeclared
+	//memcpy(&cur, msg + sizeof(tGsmpMessageHeader), sizeof(tImuPayload));
 	// 2. check IMU Data
 	if (checkImuData(cur) == ERROR)
 	{
@@ -42,14 +48,15 @@ void handleImuMsg()
 		gImuData = cur; // TODO: TIMER TICK can be added.
 	}
 	// 4. Resume navigation Task
-	taskResume(navigationTaskHandle);
+	vTaskResume(xNavigationTaskHandle);
 }
 
 void handleSeekerMsg()
 {
 	// 1. Seeker payload  memcpy
 	tSeekerPayload cur;
-	memcpy(&cur, msg + sizeof(tGsmpMessageHeader), sizeof(tSeekerPayload));
+	// ERR : msg undeclared
+	//memcpy(&cur, msg + sizeof(tGsmpMessageHeader), sizeof(tSeekerPayload));
 	// 2. check Seeker Data
 	if (checkSeekerData(cur) == ERROR)
 	{
@@ -61,7 +68,7 @@ void handleSeekerMsg()
 	{
 		gFailCount[SEEKER_DATA_FAIL] = 0;
 		// 3. save valid Seeker data
-		SeekerData = cur;
+		gSeekerData = cur;
 	}
 }
 
@@ -71,7 +78,7 @@ void udpReceiveTaskMain( void *pvParameters )
 	// 1. gsmp header memcpy
 	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
 	// 2. check crc
-	if (checkCrc() == FALSE)
+	if (checkCrc(gUdpBuffer) == FALSE)
 	{
 		gFailCount[UDP_FAIL] += 1;
 		if (gFailCount[UDP_FAIL] > 10)
@@ -93,4 +100,19 @@ void udpReceiveTaskMain( void *pvParameters )
 			handleSeekerMsg();
 		}
 	}
+}
+
+uint16_t getCrc()
+{
+	return 1;
+}
+
+int checkImuData(tImuPayload cur)
+{
+	return 1;
+}
+
+int checkSeekerData(tSeekerPayload cur)
+{
+	return 1;
 }

@@ -4,10 +4,6 @@
 
 #include <stdint.h>
 
-#define FALSE 0
-#define TRUE 1
-#define ERROR -1
-
 typedef struct _tDVector3
 {
 	double x;
@@ -25,7 +21,6 @@ typedef struct _tDVector4
 
 typedef struct _tGsmpMessageHeader
 {
-	uint8_t startBit;
 	uint8_t startflag;
 	uint8_t msgId;
 	uint8_t srcId;
@@ -34,6 +29,14 @@ typedef struct _tGsmpMessageHeader
 	uint16_t msgLen;
 
 } tGsmpMessageHeader;
+
+typedef struct sGsmpMsg
+{
+	tGsmpMessageHeader header;
+	void* payload;
+	uint16_t CRC;
+
+} tGsmpMsg;
 
 typedef struct _tImuPayload
 {
@@ -57,6 +60,7 @@ typedef struct _tACBPayload
 	tDVector3 canadCmd;
 } tAcbPayload;
 
+// controlTask input
 typedef struct _tAccCmd
 {
 	int currentStatus;
@@ -65,14 +69,14 @@ typedef struct _tAccCmd
 
 typedef struct _tTelemetryData
 {
-	uint_8 bitFlags;
 	int cnt;
-	double dist;
-	tImuPayload imuPayload;
-	tSeekerPayload seekerPayload;
-	tDVector4 Quarternion;
+	uint8_t bitFlags;
+	tImuData imuData;
+	tSeekerData seekerData;
 	tDVector3 accCmd;
-	tAcbPayload ctlCmd;
+	tDVector4 quarternion;
+	tDVector3 controlCmd;
+
 } tTelemetryData;
 
 #endif
