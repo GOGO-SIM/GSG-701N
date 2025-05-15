@@ -1,3 +1,5 @@
+#include "global.h"
+
 /*
  * Starts all the other tasks, then starts the scheduler.
  */
