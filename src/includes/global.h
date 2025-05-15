@@ -1,4 +1,7 @@
 #pragma once
+#ifndef _GLOBAL_H_
+#define _GLOBAL_H_
+
 
 #include <stdint.h>
 #include "gsgTypes.h"
@@ -91,3 +94,5 @@ extern const double gVoltage3;
 
 extern const double gCelcius;
 
+
+#endif
