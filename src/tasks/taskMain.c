@@ -21,33 +21,50 @@ const static int CONTROL_TASK_PRIO = 32;
 const static int UART_SEND_TASK_PRIO = 34;
 const static int CBIT_TASK_PRIO = 36;
 const static int TELEMETRY_TASK_PRIO = 38;
+// ERR : main task priority -> TBD
+const static int MAIN_TASK_PRIO = 40;
+
+static TaskFunction_t taskMain;
+static TaskFunction_t initTaskMain;
+static TaskFunction_t pbitTaskMain;
+static TaskFunction_t stanbyIgnitionTaskMain;
+static TaskFunction_t uartReceiveTaskMain;
+static TaskFunction_t udpReceiveTaskMain;
+static TaskFunction_t schedulingTaskMain;
+static TaskFunction_t navigationTaskMain;
+static TaskFunction_t guidanceTaskMain;
+static TaskFunction_t controlTaskMain;
+static TaskFunction_t uartSendTaskMain;
+static TaskFunction_t cbitTaskMain;
+static TaskFunction_t TelemetryTaskMain;
+static TaskFunction_t pbitFailTaskMain;
 
 /**
  * [task handlers]
  */
-TaskHandle_t xMainTaskHandle,
-	xSchedulingTaskHandle,
-	xInitTaskHandle,
-	xPbitTaskHandle,
-	xStanbyIgnitionTaskHandle,
-	xUartReceiveTaskHandle,
-	xUdpReceiveTaskHandle,
-	xNavigationTaskHandle,
-	xGuidanceTaskHandle,
-	xControlTaskHandle,
-	xUartSendTaskHandle,
-	xCbitTaskHandle,
-	xTelemetryTaskHandle;
+//TaskHandle_t xMainTaskHandle,
+//	xSchedulingTaskHandle,
+//	xInitTaskHandle,
+//	xPbitTaskHandle,
+//	xStanbyIgnitionTaskHandle,
+//	xUartReceiveTaskHandle,
+//	xUdpReceiveTaskHandle,
+//	xNavigationTaskHandle,
+//	xGuidanceTaskHandle,
+//	xControlTaskHandle,
+//	xUartSendTaskHandle,
+//	xCbitTaskHandle,
+//	xTelemetryTaskHandle;
 
 
 void USER_THREADS( void )
 {
 	/* Create one of the two tasks. */
-	xTaskCreate(	(TaskFunction_t)TaskMain,
+	xTaskCreate(	(TaskFunction_t)taskMain,
 					"TaskMain",
 					256,
 					NULL,
-					TASK_MAIN_PRIO,
+					MAIN_TASK_PRIO,
 					&xMainTaskHandle);
 }
 
@@ -67,6 +84,7 @@ void USER_THREADS( void )
  * 12. telemetry Task 持失
  * 13. pbit fail task 持失
  */
+
 static void createAllTask(void)
 {
 //	 * 1. init Task 持失
@@ -130,6 +148,7 @@ static void createAllTask(void)
 					"Control Task",
 					256,
 					NULL,
+					CONTROL_TASK_PRIO,
 					&xControlTaskHandle);
 //	 * 9. uartSend Task 持失
 	xTaskCreate(	(TaskFunction_t)uartSendTaskMain,
