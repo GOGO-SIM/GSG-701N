@@ -1,4 +1,9 @@
-<<<<<<< HEAD:src/utils/global.c
+#pragma once
+#ifndef _TASK_MAIN_H_
+#define _TASK_MAIN_H_
+
+#include <stdint.h>
+#include "gsgTypes.h"
 #include <global.h>
 
 /**
@@ -31,14 +36,6 @@ const uint8_t START_FLAG = 0x7E;
  */
 uint32_t gFailCount[4];
 
-=======
-#pragma once
-#ifndef _TASK_MAIN_H_
-#define _TASK_MAIN_H_
-
-#include <stdint.h>
-#include "gsgTypes.h"
->>>>>>> 3253550889554d829f89e260058b96eb9618c71d:src/includes/taskMain.h
 
 /**
  * gImuData
@@ -59,13 +56,20 @@ tSeekerData gSeekerData;
  * gAccCommand
  * 목표 가속도 double vector3 (x, y, z)
  */
-tDVector3 gAccCommand;
+tDVector3 gAccCmd;
 
 /**
  * gAttitude
  * 현재 자세 double vector4 (w, x, y, z)
  */
 tDVector4 gAttitude;
+
+/**
+ * gControlCommand
+ * 현재 자세 double vector3 ( x, y, z)
+ * 목표 각속도 -> Guidance  Task return하는 애
+ */
+tDVector3 gControlCmd;
 
 /**
  * gGcuStatus
@@ -83,3 +87,5 @@ const double gVoltage2 = 4.0f;
 const double gVoltage3 = 5.0f;
 
 const double gCelcius = 30.0f;
+
+#endif

@@ -3,23 +3,24 @@
 #include <string.h>
 #include "gsgTypes.h"
 #include "global.h"
+#include "crc.h"
 
 uint8_t gUdpBuffer[100];
 int checkImuData(tImuPayload cur);
 int checkSeekerData(tSeekerPayload cur);
 uint16_t getCrc();
-
-int checkCrc()
-{
-	int res;
-	uint16_t crc;
-
-	if (getCrc() == crc)
-		res = TRUE;
-	else
-		res = FALSE;
-	return res;
-}
+//int checkCrc()
+//{
+//	int res;
+//	uint16_t crc;
+//	crc = 0;
+//
+//	if (getCrc() == crc)
+//		res = TRUE;
+//	else
+//		res = FALSE;
+//	return res;
+//}
 
 // explode �������� ����
 static void explode()
@@ -77,7 +78,7 @@ void udpReceiveTaskMain( void *pvParameters )
 	// 1. gsmp header memcpy
 	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
 	// 2. check crc
-	if (checkCrc() == FALSE)
+	if (checkCrc(gUdpBuffer) == FALSE)
 	{
 		gFailCount[UDP_FAIL] += 1;
 		if (gFailCount[UDP_FAIL] > 10)

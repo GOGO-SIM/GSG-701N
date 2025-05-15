@@ -9,19 +9,30 @@
 #include "task.h"
 
 /* 매크로 정의 */
+#ifndef TRUE
 #define TRUE 1
+#endif
+#ifndef FALSE
 #define FALSE 0
+#endif
+#ifndef SUCCESS
 #define SUCCESS 1
+#endif
+#ifndef FAIL
 #define FAIL 0
+#endif
+#ifndef ERROR
 #define ERROR -1
+#endif
 
 /* 활용할 전역 변수 extern */
+extern uint32_t gFailCount[4];
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
-extern tDVector3 gAccCommand;
+extern tDVector3 gAccCmd;
 extern tDVector4 gAttitude;
+extern tDVector3 gControlCmd;
 extern uint32_t gGcuStatus;
-extern uint32_t gFailCount[4];
 
 /**
  * [task handlers]

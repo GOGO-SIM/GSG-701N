@@ -30,6 +30,14 @@ typedef struct _tGsmpMessageHeader
 
 } tGsmpMessageHeader;
 
+typedef struct sGsmpMsg
+{
+	tGsmpMessageHeader header;
+	void* payload;
+	uint16_t CRC;
+
+} tGsmpMsg;
+
 typedef struct _tImuPayload
 {
 	tDVector3 acc;
@@ -52,6 +60,7 @@ typedef struct _tACBPayload
 	tDVector3 canadCmd;
 } tAcbPayload;
 
+// controlTask input
 typedef struct _tAccCmd
 {
 	int currentStatus;
@@ -60,14 +69,14 @@ typedef struct _tAccCmd
 
 typedef struct _tTelemetryData
 {
-	uint8_t bitFlags;
 	int cnt;
-	double dist;
-	tImuPayload imuPayload;
-	tSeekerPayload seekerPayload;
-	tDVector4 Quarternion;
+	uint8_t bitFlags;
+	tImuData imuData;
+	tSeekerData seekerData;
 	tDVector3 accCmd;
-	tAcbPayload ctlCmd;
+	tDVector4 quarternion;
+	tDVector3 controlCmd;
+
 } tTelemetryData;
 
 #endif

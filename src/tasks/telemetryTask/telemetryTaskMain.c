@@ -1,7 +1,116 @@
-void telemetryTask( void *pvParameters )
+#include "gsgTypes.h"
+#include "global.h"
+
+static tGsmpMsg telemetryMessage;
+static tTelemetryData telemetryPayload;
+static tGsmpMessageHeader telemetryHeader;
+static int frameCount;
+
+uint8_t taskFailedFlag; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½Ð¿ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´ï¿½.
+
+// ï¿½ï¿½ï¿½Ð½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ 1ï¿½ï¿½ SET (TRUE)
+
+// taskFailedFlag = || PBIT || - || CBIT || - || IMU || Seeker || ACB || - ||
+//---------------------------------------------------------------------------
+// taskFailedFlag = ||  7   || 6 ||  5   || 4 ||  3  ||   2    ||  1  || 0 ||
+
+static void packMessage()
 {
-/**
- * [Monitoring System¿¡ Telemetry µ¥ÀÌÅÍ¸¦ Àü¼ÛÇÑ´Ù.]
- * 1. ÅÚ·¹¸ÞÆ®¸® Å¥ÀÇ ³»¿ëÀ» UDP·Î Àü¼ÛÇÑ´Ù.
- */
+	telemetryMessage.payload = &telemetryPayload;
+	telemetryMessage.header = telemetryHeader;
+	//telemetryMessage.CRC = setCrc(const void* data, uint16_t length);
+}
+
+static void writeHeader()
+{
+	// 1. Start Flag Set
+	telemetryHeader.startflag = 0x7E;
+
+	// 2. ï¿½Ú·ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ 0x07
+	telemetryHeader.msgId = 0x07;
+
+	// 3. ï¿½Û½ï¿½ï¿½ï¿½ï¿½ï¿½ GCU 0x00
+	telemetryHeader.srcId = 0x00;
+
+	// 4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ 0x04
+	telemetryHeader.destId = 0x04;
+
+	// 5. ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ = 0
+	telemetryHeader.msgStat = 0x00;
+
+	// 6. ï¿½ï¿½ï¿½Ì·Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  (1 + 4 + 24 + 24 + 24 + 32 + 24 + 24) = 157byte
+	telemetryHeader.msgLen = 157;
+
+}
+
+static void writePayload()
+{
+	// 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ write
+
+	telemetryPayload.cnt = frameCount; // staticï¿½Ì´ï¿½.
+
+	// 2. ï¿½ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ write
+
+	telemetryPayload.bitFlags = taskFailedFlag;
+
+	// 3. ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ write
+	telemetryPayload.imuData = gImuData;
+	telemetryPayload.seekerData = gSeekerData;
+	telemetryPayload.accCmd = gAccCmd;
+	telemetryPayload.quarternion = gAttitude;
+	telemetryPayload.controlCmd = gControlCmd;
+
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ù¸ï¿½ Taskï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½î³½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â·ï¿½ Payloadï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
+}
+
+static void sendViaUdp()
+{
+
+   // TBD
+
+}
+
+static void runTelemetry()
+{
+		/*
+		 * 1. framecount += 1
+		 * 2. ï¿½Þ½ï¿½ï¿½ï¿½ statusï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		 * 3. telemetryPayloadï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Set
+		 * 4. telemetryHeaderï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Set
+		 * 5. ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ CRCï¿½ï¿½ï¿½ï¿½
+		 * 6. UDP ï¿½Û½ï¿½
+		 */
+		/*****************************[ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½]*****************************/
+
+	// 1.framecount += 1;
+
+	frameCount += 1;
+
+	// 2.telemetryHeaderï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Set
+
+	writeHeader(); //
+
+	// 3.telemetryPayloadï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Set
+
+	writePayload();
+
+	// 4. ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ CRCï¿½ï¿½ï¿½ï¿½
+
+	packMessage();
+
+	// 5. UDP ï¿½Û½ï¿½
+
+	sendViaUdp();
+
+}
+
+void telemetryTaskMain(void *param)
+{
+    for(;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        runTelemetry();
+    }
 }
