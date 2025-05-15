@@ -18,6 +18,7 @@ extern tSeekerData gSeekerData;
 extern tDVector3 gAccCommand;
 extern tDVector4 gAttitude;
 extern uint32_t gGcuStatus;
+extern uint32_t gFailCount[4];
 
 /**
  * [task handlers]
@@ -35,7 +36,7 @@ extern TaskHandle_t	xControlTaskHandle;
 extern TaskHandle_t	xUartSendTaskHandle;
 extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
-
+extern TaskHandle_t xPbitFailTaskHandle;
 
 /* enum 클래스 정의 */
 enum eGcuStatus
@@ -46,15 +47,6 @@ enum eGcuStatus
 	CBIT_FAIL = 3,
 };
 
-/**
- * gFailCount[4]
- * [0] - udp
- * [1] - uart
- * [2] - imuData
- * [3] - SeekerData
- */
-uint32_t gFailCount[4];
-
 enum eFailedUnit
 {
 	UDP_FAIL = 0,
@@ -63,7 +55,7 @@ enum eFailedUnit
 	SEEKER_DATA_FAIL = 3,
 };
 
-const uint8_t START_FLAG = 0x7E;
+extern const uint8_t START_FLAG;
 
 enum eMessageId
 {
@@ -90,3 +82,12 @@ enum eStatus
 	CRC_ERROR = 1,
 	INTERNAL_ERROR = 2,
 };
+
+
+/*=====CBIT&PBIT 전압 및 온도  체크  변수=====*/
+extern const double gVoltage1;
+extern const double gVoltage2;
+extern const double gVoltage3;
+
+extern const double gCelcius;
+

@@ -4,10 +4,6 @@
 
 #include <stdint.h>
 
-#define FALSE 0
-#define TRUE 1
-#define ERROR -1
-
 typedef struct _tDVector3
 {
 	double x;
