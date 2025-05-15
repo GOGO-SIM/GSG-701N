@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "gsgTypes.h"
-#include "taskMain.h"
+#include "global.h"
 
 void pbitFailTaskMain( void *pvParameters )
 {
@@ -12,6 +12,7 @@ void pbitFailTaskMain( void *pvParameters )
 	// 1. 전역 커맨드 변수의 payload의 Current Status를 PBIT_FAIL로 설정
 	gGcuStatus = PBIT_FAIL;
 	// 2. ACB CMD 송신 태스크 깨움
-	xTaskNotifyGive(uartSendTask);
+	xTaskNotifyGive(xUartSendTaskHandle);
+	// 3. pbit Task 태스크 휴면 시작
 
 }
