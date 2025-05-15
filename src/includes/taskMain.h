@@ -1,9 +1,9 @@
 #pragma once
-#ifndef _GSG_TYPES_H_
-#define _GSG_TYPES_H_
+#ifndef _TASK_MAIN_H_
+#define _TASK_MAIN_H_
 
 #include <stdint.h>
-#include "taskMain.h"
+#include "gsgTypes.h"
 
 /**
  * gImuData
