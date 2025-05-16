@@ -24,8 +24,14 @@
 #ifndef ERROR
 #define ERROR -1
 #endif
+#ifndef UART_BAUD
+#define UART_BAUD 115200
+#endif
+
 
 /* 활용할 전역 변수 extern */
+extern int gRecvFlag;
+extern int gRecvMissCount;
 extern uint32_t gFailCount[4];
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;

@@ -27,6 +27,9 @@ TaskHandle_t xMainTaskHandle,
 
 const uint8_t START_FLAG = 0x7E;
 
+int gRecvFlag = TRUE;
+int gRecvMissCount = 0;
+
 /**
  * gFailCount[4]
  * [0] - udp
@@ -66,7 +69,7 @@ tDVector4 gAttitude;
 
 /**
  * gControlCommand
- * 현재 자세 double vector3 ( x, y, z)
+ * 현재 자세 double vector3 (x, y, z)
  * 목표 각속도 -> Guidance  Task return하는 애
  */
 tDVector3 gControlCmd;
