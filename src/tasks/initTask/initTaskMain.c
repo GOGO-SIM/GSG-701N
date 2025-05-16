@@ -11,7 +11,6 @@
 #include "lwip/ip_addr.h"
 #include "netif/xemacpsif.h"
 #include "xparameters.h"
-#include "taskMain.h"
 #include "platform_config.h"
 
 #define INIT_FAIL 4
@@ -34,12 +33,12 @@ static void tcpip_init_done(void *arg) {
     IP4_ADDR(&netmask, 255, 255, 255, 0);
     IP4_ADDR(&gw, 192, 168, 1, 1);
 
-//    netif_add(&myNetif, &ipaddr, &netmask, &gw, (void *)XPAR_XEMACPS_0_BASEADDR, xemacpsif_init, tcpip_input);
-//    xil_printf("netif_add done\r\n");
+    // TODO: tcp_init()의 우선 순위가 낮아서, init이 스케줄링 중간에 완료되는 현상이 생긴다.
     if (!xemac_add(&myNetif, &ipaddr, &netmask, &gw, macAddr,
-    		PLATFORM_EMAC_BASEADDR)) {
-    		xil_printf("Error adding N/W interface\r\n");
-    		return;
+    		PLATFORM_EMAC_BASEADDR))
+    {
+		xil_printf("Error adding N/W interface\r\n");
+		return;
 	}
 	xil_printf("xemac_add done \r\n");
 
@@ -54,7 +53,7 @@ static void tcpip_init_done(void *arg) {
                    xemacif_input_thread,
                    &myNetif,
                    1024,
-                   4);
+                   29);
 
     // netconn 생성
     udpConn = netconn_new(NETCONN_UDP);
@@ -127,18 +126,18 @@ void initTaskMain( void *pvParameters )
 	 * 1. UDP server open
 	 * 2. delete task
 	 */
-	xil_printf("-----init Task Main------\r\n");
+	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 
 	initUdpServer();
 
-	xil_printf("-----test main------\r\n");
-	xTaskCreate((TaskFunction_t)testUdp,
-						"test",
-						2048,
-						NULL,
-						1,
-						&xtest);
+//	xil_printf("-----test main------\r\n");
+//	xTaskCreate((TaskFunction_t)testUdp,
+//						"test",
+//						2048,
+//						NULL,
+//						1,
+//						&xtest);
 
-
+	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
 	vTaskDelete(NULL);
 }

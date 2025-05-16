@@ -3,78 +3,90 @@
 #include "gsgTypes.h"
 #include "global.h"
 
-static int sPassCbitFlag = TRUE; // Åë°ú == TRUE, ½ÇÆÐ == FALSE
+//static int sPassCbitFlag = TRUE; // ï¿½ï¿½ï¿½ == TRUE, ï¿½ï¿½ï¿½ï¿½ == FALSE
+//
+//int xADC_IsConversionDone();
+//
+//static void checkPower()
+//{
+//	/*
+//	 * 1. XADC ï¿½ï¿½È¯ ï¿½ï¿½ï¿½
+//	 * 2. ï¿½ï¿½ ï¿½Ð±ï¿½
+//	 * 3. ï¿½Ó°è°ª ï¿½ï¿½
+//	 * ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ PBITï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	 */
+//	/*****************************[ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½]*****************************/
+//	//1. XADC ï¿½ï¿½È¯ ï¿½ï¿½ï¿½
+//	while (!xADC_IsConversionDone());
+//
+//	//2. ï¿½ï¿½ ï¿½Ð±ï¿½
+//	int rawValue = xADC_GetData();
+//    double measuredVoltage = xADC_ConvertToVoltage(rawValue);
+//
+//	//3.ï¿½Ó°è°ª ï¿½ï¿½
+//	if (measuredVoltage < gVoltage1)
+//	{
+//		sPassCbitFlag == FALSE;
+//	}
+//}
+//
+//int checkAllRegister()
+//{
+//	return TRUE;
+//}
+//
+//static void checkRegister()
+//{
+//	/*
+//	 * 1. ï¿½ï¿½ç·¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+//	 */
+//	/*****************************[ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½]*****************************/
+//
+//	// 1. ï¿½ï¿½ç·¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+//	if (checkAllRegister() == TRUE)
+//	{
+//		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Ì»ï¿½ï¿½Ò¶ï¿½ set ï¿½Ç´ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ set ï¿½Ç´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Ò°ï¿½
+//		sPassCbitFlag = FALSE;
+//	}
+//}
 
-int xADC_IsConversionDone();
-
-static void checkPower()
+void run(void)
 {
-	/*
-	 * 1. XADC º¯È¯ ´ë±â
-	 * 2. °ª ÀÐ±â
-	 * 3. ÀÓ°è°ª ºñ±³
-	 * ÃÊ±âÈ­ °ü·ÃÀº ÀÌ¹Ì PBIT¿¡¼­ ÁøÇàÇÏ¿´À½À¸·Î ´õ ÇÏÁö ¾ÊÀ½
-	 */
-	/*****************************[ÀÓ½Ã ±¸Çö]*****************************/
-	//1. XADC º¯È¯ ´ë±â
-	while (!xADC_IsConversionDone());
 
-	//2. °ª ÀÐ±â
-	int rawValue = xADC_GetData();
-    double measuredVoltage = xADC_ConvertToVoltage(rawValue);
-
-	//3.ÀÓ°è°ª ºñ±³
-	if (measuredVoltage < gVoltage1)
-	{
-		sPassCbitFlag == FALSE;
-	}
-}
-
-int checkAllRegister()
-{
-	return TRUE;
-}
-
-static void checkRegister()
-{
-	/*
-	 * 1. ¸ðµç·¹Áö½ºÅÍ °Ë»ç
-	 */
-	/*****************************[ÀÓ½Ã ±¸Çö]*****************************/
-
-	// 1. ¸ðµç·¹Áö½ºÅÍ °Ë»ç
-	if (checkAllRegister() == TRUE)
-	{
-		// ·¹Áö½ºÅÍ°¡ ÀÌ»óÇÒ¶§ set µÇ´ÂÁö, Á¤»óÀÏ¶§ set µÇ´ÂÁö ¾ÆÁ÷ ÆÇ´Ü ºÒ°¡
-		sPassCbitFlag = FALSE;
-	}
 }
 
 void cbitTaskMain( void *pvParameters )
 {
 	/*
-	 * 1. Àü¾Ð °Ë»ç
-	 * 2. ·¹Áö½ºÅÍ °Ë»ç
-	 * 3. ÇÃ·¡±× °Ë»ç ¹× Æø¹ß
+	 * 1. ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	 * 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	 * 3. ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	 */
-	/*****************************[ÀÓ½Ã ±¸Çö]*****************************/
-	while(1)
-	{
-		// 1. Àü¾Ð °Ë»ç
-		checkPower();
-		if ( sPassCbitFlag == TRUE )
-		{
-		// 2. ·¹Áö½ºÅÍ °Ë»ç
-			checkRegister();
-		}
-		// 3. ÇÃ·¡±× °Ë»ç ¹× Æø¹ß
-		if ( sPassCbitFlag == FALSE )
-		{
-			//Æø¹ßÇÑ´Ù.
-		}
-		vTaskResume(xTelemetryTaskHandle);
-		vTaskSuspend(xCbitTaskHandle);
-	}
+	/*****************************[ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½]*****************************/
+    for(;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+		run();
+    }
+//	while(1)
+//	{
+//		// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+//		checkPower();
+//		if ( sPassCbitFlag == TRUE )
+//		{
+//		// 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+//			checkRegister();
+//		}
+//		// 3. ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//		if ( sPassCbitFlag == FALSE )
+//		{
+//			//ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+//		}
+//		vTaskResume(xTelemetryTaskHandle);
+//		vTaskSuspend(xCbitTaskHandle);
+//	}
 
 }
 

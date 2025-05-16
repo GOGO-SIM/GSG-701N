@@ -72,34 +72,46 @@ void handleSeekerMsg()
 	}
 }
 
+void run()
+{
+    
+}
+
 void udpReceiveTaskMain( void *pvParameters )
 {
-	tGsmpMessageHeader curHeader;
-	// 1. gsmp header memcpy
-	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
-	// 2. check crc
-	if (checkCrc(gUdpBuffer) == FALSE)
-	{
-		gFailCount[UDP_FAIL] += 1;
-		if (gFailCount[UDP_FAIL] > 10)
-		{
-			// 2-1. if failure accumulated 10 times, then explode
-			explode();
-		}
-	}
-	else
-	{
-		gFailCount[UDP_FAIL] = 0;
-		// 3. process data based on message type
-		if (curHeader.msgId == IMU_MSG_ID)
-		{
-			handleImuMsg();
-		}
-		else if (curHeader.msgId == SEEKER_MSG_ID)
-		{
-			handleSeekerMsg();
-		}
-	}
+    for(;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+		run();
+    }
+//	tGsmpMessageHeader curHeader;
+//	// 1. gsmp header memcpy
+//	memcpy(&curHeader, gUdpBuffer, sizeof(curHeader));
+//	// 2. check crc
+//	if (checkCrc(gUdpBuffer) == FALSE)
+//	{
+//		gFailCount[UDP_FAIL] += 1;
+//		if (gFailCount[UDP_FAIL] > 10)
+//		{
+//			// 2-1. if failure accumulated 10 times, then explode
+//			explode();
+//		}
+//	}
+//	else
+//	{
+//		gFailCount[UDP_FAIL] = 0;
+//		// 3. process data based on message type
+//		if (curHeader.msgId == IMU_MSG_ID)
+//		{
+//			handleImuMsg();
+//		}
+//		else if (curHeader.msgId == SEEKER_MSG_ID)
+//		{
+//			handleSeekerMsg();
+//		}
+//	}
 }
 
 uint16_t getCrc()
