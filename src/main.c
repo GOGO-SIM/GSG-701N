@@ -1,11 +1,10 @@
 #include <platform_config.h>
-#include <sleep.h>
 #include "netif/xadapter.h"
 #include "xil_printf.h"
 #include "lwip/init.h"
 #include "lwip/inet.h"
 #include "taskMain.h"
-#pragma message("Using configMAX_PRIORITIES: " STRINGIFY(configMAX_PRIORITIES))
+
 void initTaskMain( void *pvParameters );
 
 int main()
