@@ -11,54 +11,66 @@ static int recvFlag;
 void explode();
 int checkCRC(tGsmpMessageHeader examp, uint16_t size);
 
+void run()
+{
+    
+}
+
 void uartReceiveTaskMain() 
 {
+    for(;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+		run();
+    }
 	/*
-	 * 1. recvFlag´Â true·Î ¼³Á¤ÇÑ´Ù.
-	 * 2. gsmpMsgHeader º¯¼ö¿¡ memcpyÇÑ´Ù.
-	 * 3. CRC °Ë»ç¸¦ ÁøÇàÇÑ´Ù.
-	 * 3.1. CRC °Ë»ç°¡ ÀÏÄ¡ÇÏ´ÂÁö °Ë»çÇÑ´Ù.
-	 * 3.1.1. CRC°¡ ÀÏÄ¡ÇÏÁö ¾Ê°Å³ª, ÀÀ´ä ÄÚµå°¡ OK°¡ ¾Æ´Ñ °æ¿ì gUartFailCount += 1
-	 * 3.1.2. gUartFailCount > 10 ÀÌ¶ó¸é ÆøÆÄ ÁøÇàÇÑ´Ù.
+	 * 1. recvFlagï¿½ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	 * 2. gsmpMsgHeader ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ memcpyï¿½Ñ´ï¿½.
+	 * 3. CRC ï¿½Ë»ç¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	 * 3.1. CRC ï¿½Ë»ç°¡ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
+	 * 3.1.1. CRCï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Úµå°¡ OKï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ gUartFailCount += 1
+	 * 3.1.2. gUartFailCount > 10 ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	 * 4. gUartFailCount = 0
-	 * 5. Á¾·á
+	 * 5. ï¿½ï¿½ï¿½ï¿½
 	 * */
-	int isCRCSuccess;
-	int messageStatus;
-	tGsmpMessageHeader gsmpMsgHeader;
-	uint8_t* gUartBuffer;
-
-	// 1. recvFlag´Â true·Î ¼³Á¤ÇÑ´Ù.
-	recvFlag = TRUE;
-	messageStatus = TRUE;
-
-	// 2. gsmpMsgHeader º¯¼ö¿¡ memcpyÇÑ´Ù.
-	memcpy(&gsmpMsgHeader, gUartBuffer, sizeof(gsmpMsgHeader));
-	// getUartMsg(gsmpMsgHeader); -> TODO: ÃÊ±âÈ­ ½Ã UART RX interrupt¸¦ ¼³Á¤ÇØ¾ß ÇÑ´Ù.
-
-	// 3. CRC °Ë»ç¸¦ ÁøÇàÇÑ´Ù.
-	isCRCSuccess = checkCRC(gsmpMsgHeader, sizeof(gsmpMsgHeader));
-	// 3.1. CRC °Ë»ç°¡ ÀÏÄ¡ÇÏ´ÂÁö °Ë»çÇÑ´Ù.
-	// 3.1.1. ÀÏÄ¡ÇÏÁö ¾Ê´Â °æ¿ì gUartFailCount += 1
-
-	/**
-	 * [¼ö½ÅÇÑ message ¿¡·¯ °Ë»ç]:
-	 * CRC¸¦ ½ÇÆÐÇÑ °æ¿ì: GCU¿¡¼­ °è»êÇÑ °á°ú¿Í ºÒÀÏÄ¡
-	 * message »óÅÂ°¡ OK°¡ ¾Æ´Ñ °æ¿ì: ¼ö½Å Ãø(ACB)ÀÇ CRC ¿À·ù ¶Ç´Â ³×Æ®¿öÅ© ¿À·ù
-	 */
-	if (isCRCSuccess == FALSE || messageStatus != OK)
-	{
-		gFailCount[UART_FAIL] += 1;
-		// 3.1.2. gUartFailCount > 10 ÀÌ¶ó¸é ÆøÆÄ ÁøÇàÇÑ´Ù.
-		if (gFailCount[UART_FAIL] > 10)
-		{
-			explode();
-		}
-	}
-	// 4. gUartFailCount = 0
-	gFailCount[UART_FAIL] = 0;
-	// 5. Á¾·á
-	return;
+//	int isCRCSuccess;
+//	int messageStatus;
+//	tGsmpMessageHeader gsmpMsgHeader;
+//	uint8_t* gUartBuffer;
+//
+//	// 1. recvFlagï¿½ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+//	recvFlag = TRUE;
+//	messageStatus = TRUE;
+//
+//	// 2. gsmpMsgHeader ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ memcpyï¿½Ñ´ï¿½.
+//	memcpy(&gsmpMsgHeader, gUartBuffer, sizeof(gsmpMsgHeader));
+//	// getUartMsg(gsmpMsgHeader); -> TODO: ï¿½Ê±ï¿½È­ ï¿½ï¿½ UART RX interruptï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ñ´ï¿½.
+//
+//	// 3. CRC ï¿½Ë»ç¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+//	isCRCSuccess = checkCRC(gsmpMsgHeader, sizeof(gsmpMsgHeader));
+//	// 3.1. CRC ï¿½Ë»ç°¡ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ñ´ï¿½.
+//	// 3.1.1. ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ gUartFailCount += 1
+//
+//	/**
+//	 * [ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ message ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½]:
+//	 * CRCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½: GCUï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
+//	 * message ï¿½ï¿½ï¿½Â°ï¿½ OKï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(ACB)ï¿½ï¿½ CRC ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½
+//	 */
+//	if (isCRCSuccess == FALSE || messageStatus != OK)
+//	{
+//		gFailCount[UART_FAIL] += 1;
+//		// 3.1.2. gUartFailCount > 10 ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+//		if (gFailCount[UART_FAIL] > 10)
+//		{
+//			explode();
+//		}
+//	}
+//	// 4. gUartFailCount = 0
+//	gFailCount[UART_FAIL] = 0;
+//	// 5. ï¿½ï¿½ï¿½ï¿½
+//	return;
 }
 
 int checkCRC(tGsmpMessageHeader examp, uint16_t size)

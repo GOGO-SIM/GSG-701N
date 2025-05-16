@@ -148,6 +148,9 @@ static void checkNetwork(){
 
 void pbitTaskMain( void *pvParameters )
 {
+
+	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+
 	/**
 	 * [PBIT 검사 수행]
 	 *
@@ -161,30 +164,32 @@ void pbitTaskMain( void *pvParameters )
 
 	/*****************************[임시 구현]*****************************/
 
-	// 1. 전압을 체크한다.
-	checkPower();
-
-	if (sPassPbitFlag == TRUE)
-	{
-	// 2. Uart 상태를 체크한다
-		checkUart();
-
-	// 3. 연결된 기기의 네트워크를 검사한다.
-		checkNetwork();
-	}
-
-	// 4. 다음task를 깨운다.
-	if (sPassPbitFlag == TRUE)
-	{
-	// xTaskResume(콜드런치 점화 대기 상태 태스크);
-	}
-	else
-	{
-	// xTaskResume(PBIT 실패 제어 차단 상태 태스크);
-	}
-
-	// 5. pbit task를 삭제한다.
-	// xTaskDelete(xHandlePbit);
+//	// 1. 전압을 체크한다.
+//	checkPower();
+//
+//	if (sPassPbitFlag == TRUE)
+//	{
+//	// 2. Uart 상태를 체크한다
+//		checkUart();
+//
+//	// 3. 연결된 기기의 네트워크를 검사한다.
+//		checkNetwork();
+//	}
+//
+//	// 4. 다음task를 깨운다.
+//	if (sPassPbitFlag == TRUE)
+//	{
+//	// xTaskResume(콜드런치 점화 대기 상태 태스크);
+//	}
+//	else
+//	{
+//	// xTaskResume(PBIT 실패 제어 차단 상태 태스크);
+//	}
+//
+//	// 5. pbit task를 삭제한다.
+	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
+	xTaskNotifyGive(xStanbyIgnitionTaskHandle);
+	vTaskDelete(NULL);
 }
 
 void UartInit()
