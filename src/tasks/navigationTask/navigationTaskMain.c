@@ -1,11 +1,25 @@
+#include "global.h"
+
+void run()
+{
+    
+}
 
 void navigationTaskMain( void *pvParameters )
 {
+
+    for(;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+		run();
+    }
 	// 1. task suspend
 
 	for (;;)
 	{
-		// 2. Ç×¹ý °è»ê
+		// 2. ï¿½×¹ï¿½ ï¿½ï¿½ï¿½
 		// 3. guidance task resume
 		// task suspend
 	}

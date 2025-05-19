@@ -1,24 +1,12 @@
-#include <platform_config.h>
-#include "netif/xadapter.h"
-#include "xil_printf.h"
-#include "lwip/init.h"
-#include "lwip/inet.h"
-#include "taskMain.h"
+#include "global.h"
 
-void initTaskMain( void *pvParameters );
+extern TaskFunction_t initTaskMain;
+void USER_THREADS( void );
 
 int main()
 {
-	xil_printf("-----init Task Main try Create------\r\n");
-	xTaskCreate((TaskFunction_t)initTaskMain,
-						"Init Task",
-						2048,
-						NULL,
-						50,
-						&xInitTaskHandle);
-	xil_printf("\n\r\n\r");
-	xil_printf("-----init Task Main create complete------\r\n");
+	USER_THREADS();
 	vTaskStartScheduler();
-	while(1);
+	for(;;) ;
 	return 0;
 }

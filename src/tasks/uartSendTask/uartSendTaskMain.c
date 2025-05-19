@@ -8,27 +8,39 @@ void explode();
 void setCrc(tGsmpMessageHeader* acbMsg, tGsmpMessageHeader* fullMsgBuffer);
 void sendData(uint32_t* buffer);
 
+void run()
+{
+    
+}
+
 void uartSendTaskMain(void *pvParameters) {
 	tGsmpMessageHeader acbMsg;
 	uint32_t* buffer;
 
-	// 1. gIsUartReceive°¡ TrueÀÎÁö È®ÀÎÇÑ´Ù.
+    for(;;)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+		run();
+    }
+	// 1. gIsUartReceiveï¿½ï¿½ Trueï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½.
 	if (recvFlag == FALSE) {
-		// 1.1. gIsUartReceive == FalseÀÎ °æ¿ì recvMissCount +=1;
-		// 1.1.1. recvMissCount >= 10 ÀÌ¶ó¸é ÆøÆÄÇÑ´Ù.
+		// 1.1. gIsUartReceive == Falseï¿½ï¿½ ï¿½ï¿½ï¿½ recvMissCount +=1;
+		// 1.1.1. recvMissCount >= 10 ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 		if (++gFailCount[UART_FAIL] >= 10) {
 			explode();
 		}
 	}
 	// 2. recvMissCount = 0;
 	gFailCount[UART_FAIL] = 0;
-	// 3. messageStatus¸¦ 0À¸·Î ¼³Á¤ÇÑ´Ù.
+	// 3. messageStatusï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	acbMsg.msgStat = OK;
-	// 4. CRC-16/XMODEM ¼¼ÆÃÀ» ÁøÇàÇÑ´Ù.
+	// 4. CRC-16/XMODEM ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	// ERR : not declared -> declared in crc.h
 	//calcCrc(acbMsg, &buffer);
-	// 5. UART ¼Û½ÅÀ» ½ÃÀÛÇÑ´Ù.
+	// 5. UART ï¿½Û½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 	sendData(buffer);
+
 }
 
 void sendData(uint32_t* buffer)
