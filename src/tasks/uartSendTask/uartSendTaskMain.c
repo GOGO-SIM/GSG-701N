@@ -4,32 +4,20 @@
 #include "crc.h"
 #include "xuartps.h"
 #include "xparameters.h"
+#include "uartSendTaskMain.h"
 // blocking 무효화
 #define xil_printf(...)  do {} while(0)
-
-extern int gRecvMissCount;
-
-static const uint8_t headerSize = sizeof(tGsmpMessageHeader);
-static const uint8_t cmdSize = sizeof(gControlCmd);
-static const uint8_t crcSize = 2;
-static const uint8_t bufferSizeNoCRC = sizeof(tGsmpMessageHeader) + sizeof(gControlCmd);
-
-
-void uartSendDataRun();
-void explode();		// TODO : 삭제
-void sendData(uint8_t* buffer, uint16_t len);
-
 
 void uartSendTaskMain(void *pvParameters) {
 	for(;;)
 	{
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-		uartSendDataRun();
+        runUartSend();
 	}
 }
 
-void uartSendDataRun()
+void runUartSend()
 {
 	tGsmpMsg targetMsg;
 	// 1. gIsUartReceive가 True인지 확인한다.
