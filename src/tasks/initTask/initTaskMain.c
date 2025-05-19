@@ -12,8 +12,9 @@
 #include "netif/xemacpsif.h"
 #include "platform_config.h"
 
-#define SERVER_IP_ADDR  "192.168.1.4"   // 서버 IP
-#define SERVER_PORT     1234            // 서버 포트
+
+#define SERVER_IP_ADDR  "192.168.1.4"   // �꽌踰� IP
+#define SERVER_PORT     1234            // �꽌踰� �룷�듃
 
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
@@ -22,6 +23,7 @@ XUartPs Uart_Ps;
 XSysMon sysMonInst;
 XSysMon_Config *configPtr;
 struct netbuf *recvBuf;
+
 struct netbuf *sendBuf;
 struct netif gGsgNetif;
 struct netconn *gpUdpServerConn;
@@ -29,12 +31,12 @@ struct netconn *gpUdpClientConn;
 
 int initUartPs()
 {
-    // UART 설정 정보 구조체 포인터
+    // UART �꽕�젙 �젙蹂� 援ъ“泥� �룷�씤�꽣
     XUartPs_Config *Config;
     int Status;
 
-    // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
-    // BaseAddress, BaudRate 등 하드웨어 정보 포함
+    // UART �뵒諛붿씠�뒪 ID�뿉 �빐�떦�븯�뒗 �꽕�젙 �젙蹂대�� 寃��깋�빐�꽌 Config�뿉 ���옣
+    // BaseAddress, BaudRate �벑 �븯�뱶�썾�뼱 �젙蹂� �룷�븿
     Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
     if (Config == NULL)
     {
@@ -49,7 +51,7 @@ int initUartPs()
     	return XST_FAILURE;
    	}
 
-    // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
+    // �씤�뒪�꽩�뒪 珥덇린�솕 �떆, default 媛믪씠19200bps�씠湲� �븣臾몄뿉 �븘�슂 �떆 紐낆떆
     XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
     return XST_SUCCESS;
 }
@@ -64,6 +66,7 @@ void initXsysMon()
 // call back
 static void tcpipInitDone(void *arg) {
     ip4_addr_t ipaddr, netmask, gw, serverIp;
+
     unsigned char macAddr[] = { 0x00, 0x18, 0x3E, 0x04, 0x50, 0x84 };
     err_t err;
 
@@ -74,7 +77,8 @@ static void tcpipInitDone(void *arg) {
     IP4_ADDR(&gw, 192, 168, 1, 1);
     ipaddr_aton(SERVER_IP_ADDR, &serverIp);
 
-    // TODO: tcp_init()의 우선 순위가 낮아서, init이 스케줄링 중간에 완료되는 현상이 생긴다.
+    // TODO: tcp_init()�쓽 �슦�꽑 �닚�쐞媛� �궙�븘�꽌, init�씠 �뒪耳�以꾨쭅 以묎컙�뿉 �셿猷뚮릺�뒗 �쁽�긽�씠 �깮湲대떎.
+
     if (!xemac_add(&gGsgNetif, &ipaddr, &netmask, &gw, macAddr,
     		PLATFORM_EMAC_BASEADDR))
     {
@@ -96,9 +100,9 @@ static void tcpipInitDone(void *arg) {
                    1024,
                    4);
 
-    // UDP 클라이언트 설정
+    // UDP �겢�씪�씠�뼵�듃 �꽕�젙
     gpUdpClientConn = netconn_new(NETCONN_UDP);
-    if (gpUdpServerConn == NULL) {
+    if (gpUdpClientConn == NULL) {
         xil_printf("netconn_new failed!\r\n");
         gGcuStatus = INIT_FAIL;
         vTaskDelete(NULL);
@@ -113,7 +117,7 @@ static void tcpipInitDone(void *arg) {
 	}
 	xil_printf("client setting complete %d\r\n", err);
 
-	// UDP 서버 설정
+	// UDP �꽌踰� �꽕�젙
     gpUdpServerConn = netconn_new(NETCONN_UDP);
     if (gpUdpServerConn == NULL) {
         xil_printf("netconn_new failed!\r\n");
@@ -133,7 +137,7 @@ static void tcpipInitDone(void *arg) {
     }
 
     //netconn_set_nonblocking(gpUdpServerConn, TRUE);
-
+    xTaskNotifyGive(xInitTaskHandle);
 }
 
 void initUdpServer() {
@@ -180,7 +184,7 @@ void testUdp( void *pvParameters )
 
 	err_t err;
 	for(;;) {
-	        // 3. 버퍼 생성 및 데이터 참조
+	        // TODO: allocate memory -> we have to find another way.
 	        sendBuf = netbuf_new();
 	        if (!sendBuf) {
 	            xil_printf("Failed to create netbuf\r\n");
@@ -189,7 +193,7 @@ void testUdp( void *pvParameters )
 
 	        netbuf_ref(sendBuf, "<HELLO SERVER>", 14);
 
-	        // 4. 데이터 송신
+	        // send a message to server.
 	        err = netconn_send(gpUdpClientConn, sendBuf);
 	        if (err != ERR_OK) {
 	            xil_printf("Failed to send UDP packet: %d\r\n", err);
@@ -212,10 +216,11 @@ void initTaskMain( void *pvParameters )
 
 	initUdpServer();
     xil_printf("UDP Server initialized on port 5001\r\n");
-//	initUartPs();
-//    xil_printf("UART successfully initialized\r\n");
-//    initXsysMon();
-//    xil_printf("system monitoring successfully initialized\r\n");
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	initUartPs();
+    xil_printf("UART successfully initialized\r\n");
+    initXsysMon();
+    xil_printf("system monitoring successfully initialized\r\n");
 
 	xil_printf("-----test main------\r\n");
 	xTaskCreate((TaskFunction_t)testUdp,

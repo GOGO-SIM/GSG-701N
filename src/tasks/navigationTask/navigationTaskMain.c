@@ -1,6 +1,6 @@
 #include "global.h"
 
-void run()
+static void run()
 {
     
 }
@@ -19,7 +19,7 @@ void navigationTaskMain( void *pvParameters )
 
 	for (;;)
 	{
-		// 2. �׹� ���
+		// 2. 占쌓뱄옙 占쏙옙占�
 		// 3. guidance task resume
 		// task suspend
 	}

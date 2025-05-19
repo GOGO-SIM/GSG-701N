@@ -6,14 +6,14 @@
  */
 
 /**
- * [¿ì¼±¼øÀ§]
+ * [ìš°ì„ ìˆœìœ„]
  */
 const static int INIT_TASK_PRIO = 28;
 const static int PBIT_TASK_PRIO = 27;
 const static int STANBY_IGNITION_TASK_PRIO = 24;
 const static int PBIT_FAIL_TASK_PRIO = 24;
 const static int UART_RECEIVE_TASK_PRIO = 11;
-// ½ºÄÉÁÙ¸µ ÅÂ½ºÅ©ÀÇ ¿ì¼± ¼øÀ§´Â ÅÂ½ºÅ© Ã¼ÀÎ Áß °¡Àå ³ô¾Æ¾ß ÇÑ´Ù.
+// ìŠ¤ì¼€ì¤„ë§ íƒœìŠ¤í¬ì˜ ìš°ì„  ìˆœìœ„ëŠ” íƒœìŠ¤í¬ ì²´ì¸ ì¤‘ ê°€ì¥ ë†’ì•„ì•¼ í•œë‹¤.
 const static int SCHEDULING_TASK_PRIO = 22;
 const static int UDP_RECEIVE_TASK_PRIO = 15;
 const static int NAVIGATION_TASK_PRIO = 16;
@@ -40,25 +40,25 @@ void USER_THREADS( void )
 }
 
 /**
- * [¸ğµç ÅÂ½ºÅ© »ı¼º]
- * 1. init Task »ı¼º
- * 2. pbit Task »ı¼º
- * 3. standbyIgnition Task »ı¼º
- * 4. uartReceive Task »ı¼º
- * 5. udpReceive Task »ı¼º
- * 6. scheduing Task »ı¼º
- * 7. navigation Task »ı¼º
- * 8. guidance Task »ı¼º
- * 9. control Task »ı¼º
- * 10. uartSend Task »ı¼º
- * 11. cbit Task »ı¼º
- * 12. telemetry Task »ı¼º
- * 13. pbit fail task »ı¼º
+ * [ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å© ï¿½ï¿½ï¿½ï¿½]
+ * 1. init Task ìƒì„±
+ * 2. pbit Task ìƒì„±
+ * 3. standbyIgnition Task ìƒì„±
+ * 4. uartReceive Task ìƒì„±
+ * 5. udpReceive Task ìƒì„±
+ * 6. scheduing Task ìƒì„±
+ * 7. navigation Task ìƒì„±
+ * 8. guidance Task ìƒì„±
+ * 9. control Task ìƒì„±
+ * 10. uartSend Task ìƒì„±
+ * 11. cbit Task ìƒì„±
+ * 12. telemetry Task ìƒì„±
+ * 13. pbit fail task ìƒì„±
  */
 
 static void createAllTask(void)
 {
-//	 * 1. init Task »ı¼º
+//	 * 1. init Task ìƒì„±
 	BaseType_t xReturned;
 
 	xil_printf("----- TRY CREATE Init Task------\r\n");
@@ -76,7 +76,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Init Task------\r\n");
 	}
-//	 * 2. pbit Task »ı¼º
+//	 * 2. pbit Task ìƒì„±
 	xil_printf("----- TRY CREATE PBIT Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)pbitTaskMain,
 					"PBIT Task",
@@ -92,7 +92,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING PBIT Task------\r\n");
 	}
-//	 * 3. standbyIgnition Task »ı¼º
+//	 * 3. standbyIgnition Task ìƒì„±
 	xil_printf("----- TRY CREATE Standby Ignition Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)stanbyIgnitionTaskMain,
 					"Standby Ignition Task",
@@ -108,7 +108,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 4. uartReceive Task »ı¼º
+//	 * 4. uartReceive Task ìƒì„±
 	xil_printf("----- TRY CREATE UART Receive Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)uartReceiveTaskMain,
 					"UART Receive Task",
@@ -124,7 +124,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 5. udpReceive Task »ı¼º
+//	 * 5. udpReceive Task ìƒì„±
 	xil_printf("----- TRY CREATE UDP Receive Task------\r\n");
 	xTaskCreate(	(TaskFunction_t)udpReceiveTaskMain,
 					"UDP Receive Task",
@@ -140,7 +140,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 6. scheduling Task »ı¼º
+//	 * 6. scheduling Task ìƒì„±
 	xil_printf("----- TRY CREATE Scheduling Task------\r\n");
 	xTaskCreate(	(TaskFunction_t)schedulingTaskMain,
 					"Scheduling Task",
@@ -156,7 +156,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 6. navigation Task »ı¼º
+//	 * 6. navigation Task ìƒì„±
 	xil_printf("----- TRY CREATE Navigation Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)navigationTaskMain,
 					"Navigation Task",
@@ -172,7 +172,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 7. guidance Task »ı¼º
+//	 * 7. guidance Task ìƒì„±
 	xil_printf("----- TRY CREATE Guidance Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)guidanceTaskMain,
 					"Guidance Task",
@@ -188,7 +188,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 8. control Task »ı¼º
+//	 * 8. control Task ìƒì„±
 	xil_printf("----- TRY CREATE Control Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)controlTaskMain,
 					"Control Task",
@@ -204,7 +204,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 9. uartSend Task »ı¼º
+//	 * 9. uartSend Task ìƒì„±
 	xil_printf("----- TRY CREATE Uart Send Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)uartSendTaskMain,
 					"Uart Send Task",
@@ -220,7 +220,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 10. cbit Task »ı¼º
+//	 * 10. cbit Task ìƒì„±
 	xil_printf("----- TRY CREATE CBIT Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)cbitTaskMain,
 					"CBIT Task",
@@ -236,7 +236,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 11. telemetry Task »ı¼º
+//	 * 11. telemetry Task ìƒì„±
 	xil_printf("----- TRY CREATE Telemetry Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)telemetryTaskMain,
 					"Telemetry Task",
@@ -252,7 +252,7 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
-//	 * 12. pbit fail Task »ı¼º
+//	 * 12. pbit fail Task ìƒì„±
 	xil_printf("----- TRY CREATE PBIT Fail Task------\r\n");
 	xReturned = xTaskCreate(	(TaskFunction_t)pbitFailTaskMain,
 					"PBIT Fail Task",
@@ -274,10 +274,10 @@ void taskMain(void *pvParameters)
 {
 	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 	xil_printf("----- Task Main start------\r\n");
-	// 1. ¸ğµç ÅÂ½ºÅ©¸¦ »ı¼ºÇÑ´Ù.
+	// 1. ëª¨ë“  íƒœìŠ¤í¬ë¥¼ ìƒì„±í•œë‹¤.
 	createAllTask();
 	xil_printf("----- created all tasks ------\r\n");
-	// 2. ÀÚ½ÅÀ» »èÁ¦ÇÏ¸ç ¼­ºñ½º ½ºÄÉÁÙ¸µÀ» ½ÃÀÛÇÑ´Ù.
+	// 2. ìì‹ ì„ ì‚­ì œí•˜ë©° ì„œë¹„ìŠ¤ ìŠ¤ì¼€ì¤„ë§ì„ ì‹œì‘í•œë‹¤.
 	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
 	vTaskDelete (NULL);	// == vTaskDelete (NULL)
 }
