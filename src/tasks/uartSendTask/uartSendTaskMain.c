@@ -7,8 +7,6 @@
 
 extern int gRecvMissCount;
 
-
-static XUartPs Uart_Ps;
 static const uint8_t headerSize = sizeof(tGsmpMessageHeader);
 static const uint8_t cmdSize = sizeof(gControlCmd);
 static const uint8_t crcSize = 2;
@@ -17,22 +15,10 @@ static const uint8_t bufferSizeNoCRC = sizeof(tGsmpMessageHeader) + sizeof(gCont
 
 void uartSendDataRun();
 void explode();		// TODO : 삭제
-int initUartPs();
 void sendData(uint8_t* buffer, uint16_t len);
 
-static void run()
-{
-    
-}
 
 void uartSendTaskMain(void *pvParameters) {
-	// TODO : initTask #50
-
-	int uartStatus = initUartPs();
-	if(uartStatus == XST_FAILURE)
-	{
-		xil_printf("UART send task failed!\n");
-	}
 	for(;;)
 	{
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -60,9 +46,9 @@ void uartSendDataRun()
 
 	uint8_t txBuffer[bufferSizeNoCRC + crcSize]; // CRC 포함
 //	test data
-	gControlCmd.x = 1.02;
-	gControlCmd.y = 2.03;
-	gControlCmd.z = 3.04;
+//	gControlCmd.x = 1.02;
+//	gControlCmd.y = 2.03;
+//	gControlCmd.z = 3.04;
 	// 헤더 설정
 	targetMsg.header.startflag = START_FLAG;
 	targetMsg.header.msgId = ACB_MSG_ID;
@@ -94,32 +80,32 @@ void uartSendDataRun()
 	sendData(txBuffer, sizeof(txBuffer));
 }
 
-int initUartPs()
-{
-	// UART 설정 정보를 담을 구조체 포인터 선언
-    XUartPs_Config *Config;
-    int Status;
-
-    // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
-    // 이 정보에는 BaseAddress, BaudRate 등 하드웨어 정보 포함
-    Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
-    if (Config == NULL)
-    {
-    	xil_printf("Config is NULL\r\n");
-    	return XST_FAILURE;
-    }
-
-    Status = XUartPs_CfgInitialize(&Uart_Ps, Config, Config->BaseAddress);
-    if (Status != XST_SUCCESS)
-    {
-    	xil_printf("State is FAIL\r\n");
-    	return XST_FAILURE;
-   	}
-
-    // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
-    XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
-    return XST_SUCCESS;
-}
+//int initUartPs()
+//{
+//	// UART 설정 정보를 담을 구조체 포인터 선언
+//    XUartPs_Config *Config;
+//    int Status;
+//
+//    // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
+//    // 이 정보에는 BaseAddress, BaudRate 등 하드웨어 정보 포함
+//    Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
+//    if (Config == NULL)
+//    {
+//    	xil_printf("Config is NULL\r\n");
+//    	return XST_FAILURE;
+//    }
+//
+//    Status = XUartPs_CfgInitialize(&Uart_Ps, Config, Config->BaseAddress);
+//    if (Status != XST_SUCCESS)
+//    {
+//    	xil_printf("State is FAIL\r\n");
+//    	return XST_FAILURE;
+//   	}
+//
+//    // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
+//    XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
+//    return XST_SUCCESS;
+//}
 
 
 void sendData(uint8_t* buffer, uint16_t len)

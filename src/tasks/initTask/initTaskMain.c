@@ -10,18 +10,54 @@
 #include "lwip/netbuf.h"
 #include "lwip/ip_addr.h"
 #include "netif/xemacpsif.h"
-#include "xparameters.h"
 #include "platform_config.h"
+
 
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
 
-static struct netbuf *recvBuf;
-static ip_addr_t *clientAddr;
-static u16_t clientPort;
-struct netif myNetif;
+XUartPs Uart_Ps;
+XSysMon sysMonInst;
+XSysMon_Config *configPtr;
+struct netbuf *recvBuf;
+struct netif gsgNetif;
 struct netconn *udpConn;
-// Äİ¹é ÇÔ¼ö
+
+int initUartPs()
+{
+    // UART ì„¤ì • ì •ë³´ êµ¬ì¡°ì²´ í¬ì¸í„°
+    XUartPs_Config *Config;
+    int Status;
+
+    // UART ë””ë°”ì´ìŠ¤ IDì— í•´ë‹¹í•˜ëŠ” ì„¤ì • ì •ë³´ë¥¼ ê²€ìƒ‰í•´ì„œ Configì— ì €ì¥
+    // BaseAddress, BaudRate ë“± í•˜ë“œì›¨ì–´ ì •ë³´ í¬í•¨
+    Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
+    if (Config == NULL)
+    {
+    	xil_printf("Config is NULL\n");
+    	return XST_FAILURE;
+    }
+
+    Status = XUartPs_CfgInitialize(&Uart_Ps, Config, Config->BaseAddress);
+    if (Status != XST_SUCCESS)
+    {
+    	xil_printf("State is FAIL\n");
+    	return XST_FAILURE;
+   	}
+
+    // ì¸ìŠ¤í„´ìŠ¤ ì´ˆê¸°í™” ì‹œ, default ê°’ì´19200bpsì´ê¸° ë•Œë¬¸ì— í•„ìš” ì‹œ ëª…ì‹œ
+    XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
+    return XST_SUCCESS;
+}
+
+void initXsysMon()
+{
+    configPtr = XSysMon_LookupConfig(XPAR_SYSMON_0_DEVICE_ID);
+    XSysMon_CfgInitialize(&sysMonInst, configPtr, configPtr->BaseAddress);
+    XSysMon_SetSequencerMode(&sysMonInst, XSM_SEQ_MODE_CONTINPASS);
+}
+
+// call back
 static void tcpip_init_done(void *arg) {
     ip4_addr_t ipaddr, netmask, gw;
     unsigned char macAddr[] = { 0x00, 0x18, 0x3E, 0x04, 0x50, 0x84 };
@@ -33,8 +69,8 @@ static void tcpip_init_done(void *arg) {
     IP4_ADDR(&netmask, 255, 255, 255, 0);
     IP4_ADDR(&gw, 192, 168, 1, 1);
 
-    // TODO: tcp_init()ÀÇ ¿ì¼± ¼øÀ§°¡ ³·¾Æ¼­, initÀÌ ½ºÄÉÁÙ¸µ Áß°£¿¡ ¿Ï·áµÇ´Â Çö»óÀÌ »ı±ä´Ù.
-    if (!xemac_add(&myNetif, &ipaddr, &netmask, &gw, macAddr,
+    // TODO: tcp_init()ì˜ ìš°ì„  ìˆœìœ„ê°€ ë‚®ì•„ì„œ, initì´ ìŠ¤ì¼€ì¤„ë§ ì¤‘ê°„ì— ì™„ë£Œë˜ëŠ” í˜„ìƒì´ ìƒê¸´ë‹¤.
+    if (!xemac_add(&gsgNetif, &ipaddr, &netmask, &gw, macAddr,
     		PLATFORM_EMAC_BASEADDR))
     {
 		xil_printf("Error adding N/W interface\r\n");
@@ -42,20 +78,20 @@ static void tcpip_init_done(void *arg) {
 	}
 	xil_printf("xemac_add done \r\n");
 
-    netif_set_default(&myNetif);
+    netif_set_default(&gsgNetif);
     xil_printf("set_default done\r\n");
 
-    netif_set_up(&myNetif);
+    netif_set_up(&gsgNetif);
     xil_printf("set_up done\r\n");
 
 
     sys_thread_new("xemacif_input_thread",
                    xemacif_input_thread,
-                   &myNetif,
+                   &gsgNetif,
                    1024,
                    29);
 
-    // netconn »ı¼º
+    // netconn ìƒì„±
     udpConn = netconn_new(NETCONN_UDP);
     if (udpConn == NULL) {
         xil_printf("netconn_new failed!\r\n");
@@ -75,7 +111,6 @@ static void tcpip_init_done(void *arg) {
     }
 
     //netconn_set_nonblocking(udpConn, TRUE);
-    xil_printf("UDP Server initialized on port 5001\r\n");
 
 }
 
@@ -87,9 +122,11 @@ void initUdpServer() {
 
 TaskHandle_t xtest;
 
-// UDP ¿¡ÄÚ¼­¹ö ¿¹Á¦
+// Test: UDP echo server
 void testUdp( void *pvParameters )
 {
+	static ip_addr_t *clientAddr;
+	static u16_t clientPort;
     err_t err;
 
 	while (1) {
@@ -129,6 +166,11 @@ void initTaskMain( void *pvParameters )
 	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 
 	initUdpServer();
+    xil_printf("UDP Server initialized on port 5001\r\n");
+	initUartPs();
+    xil_printf("UART successfully initialized\r\n");
+    initXsysMon();
+    xil_printf("system monitoring successfully initialized\r\n");
 
 //	xil_printf("-----test main------\r\n");
 //	xTaskCreate((TaskFunction_t)testUdp,

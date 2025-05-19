@@ -72,7 +72,7 @@ void handleSeekerMsg()
 	}
 }
 
-void run()
+static void run()
 {
     
 }

@@ -1,6 +1,6 @@
 #include "global.h"
 
-void run()
+static void run()
 {
     
 }
