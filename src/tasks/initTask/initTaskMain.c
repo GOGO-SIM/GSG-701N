@@ -16,7 +16,7 @@
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
 
-XUartPs Uart_Ps;
+XUartPs gUartPs;
 XSysMon sysMonInst;
 XSysMon_Config *configPtr;
 struct netbuf *recvBuf;
@@ -38,7 +38,7 @@ int initUartPs()
     	return XST_FAILURE;
     }
 
-    Status = XUartPs_CfgInitialize(&Uart_Ps, Config, Config->BaseAddress);
+    Status = XUartPs_CfgInitialize(&gUartPs, Config, Config->BaseAddress);
     if (Status != XST_SUCCESS)
     {
     	xil_printf("State is FAIL\n");
@@ -46,7 +46,7 @@ int initUartPs()
    	}
 
     // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
-    XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
+    XUartPs_SetBaudRate(&gUartPs, UART_BAUD);
     return XST_SUCCESS;
 }
 
