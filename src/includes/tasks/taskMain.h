@@ -6,7 +6,7 @@ void USER_THREADS(void);
 void taskMain(void *pvParameters);
 void initTaskMain(void *pvParameters);
 void pbitTaskMain(void *pvParameters);
-void stanbyIgnitionTaskMain(void *);
+void stanbyIgnitionTaskMain(void *pvParameters);
 void uartReceiveTaskMain(void *pvParameters);
 void udpReceiveTaskMain(void *pvParameters);
 void schedulingTaskMain(void *pvParameters);

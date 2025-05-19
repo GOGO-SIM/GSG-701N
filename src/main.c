@@ -7,6 +7,6 @@ int main()
 {
 	USER_THREADS();
 	vTaskStartScheduler();
-	while (1) ;
+	for(;;) ;
 	return 0;
 }
