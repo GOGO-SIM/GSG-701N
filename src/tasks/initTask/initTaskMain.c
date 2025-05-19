@@ -21,7 +21,8 @@ static ip_addr_t *clientAddr;
 static u16_t clientPort;
 struct netif myNetif;
 struct netconn *udpConn;
-// Äİ¹é ÇÔ¼ö
+
+// call back
 static void tcpip_init_done(void *arg) {
     ip4_addr_t ipaddr, netmask, gw;
     unsigned char macAddr[] = { 0x00, 0x18, 0x3E, 0x04, 0x50, 0x84 };
@@ -33,7 +34,7 @@ static void tcpip_init_done(void *arg) {
     IP4_ADDR(&netmask, 255, 255, 255, 0);
     IP4_ADDR(&gw, 192, 168, 1, 1);
 
-    // TODO: tcp_init()ÀÇ ¿ì¼± ¼øÀ§°¡ ³·¾Æ¼­, initÀÌ ½ºÄÉÁÙ¸µ Áß°£¿¡ ¿Ï·áµÇ´Â Çö»óÀÌ »ı±ä´Ù.
+    // TODO: tcp_init()ì˜ ìš°ì„  ìˆœìœ„ê°€ ë‚®ì•„ì„œ, initì´ ìŠ¤ì¼€ì¤„ë§ ì¤‘ê°„ì— ì™„ë£Œë˜ëŠ” í˜„ìƒì´ ìƒê¸´ë‹¤.
     if (!xemac_add(&myNetif, &ipaddr, &netmask, &gw, macAddr,
     		PLATFORM_EMAC_BASEADDR))
     {
@@ -55,7 +56,7 @@ static void tcpip_init_done(void *arg) {
                    1024,
                    29);
 
-    // netconn »ı¼º
+    // netconn ìƒì„±
     udpConn = netconn_new(NETCONN_UDP);
     if (udpConn == NULL) {
         xil_printf("netconn_new failed!\r\n");
@@ -87,7 +88,7 @@ void initUdpServer() {
 
 TaskHandle_t xtest;
 
-// UDP ¿¡ÄÚ¼­¹ö ¿¹Á¦
+// UDP echo server
 void testUdp( void *pvParameters )
 {
     err_t err;
