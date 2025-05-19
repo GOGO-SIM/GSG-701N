@@ -1,15 +1,15 @@
-// FreeRTOS °ü·Ã include
+// FreeRTOS ê´€ë ¨ include
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "timers.h"
 
-// Àü¿ªº¯¼ö include
+// ì „ì—­ë³€ìˆ˜ include
 
 #include "global.h"
 
-// Xilinx °ü·Ã include
+// Xilinx ê´€ë ¨ include
 
 #include "xsysmon.h"
 #include "xil_printf.h"
@@ -17,7 +17,7 @@
 #include "xuartps.h"
 #include "xparameters.h"
 
-// Lwip °ü·Ã include
+// Lwip ê´€ë ¨ include
 
 #include "lwip/tcpip.h"
 #include "lwip/init.h"
@@ -32,18 +32,18 @@
 XSysMon sysMonInst;
 XSysMon_Config *configPtr;
 
-//-----------------------------( »óÅÂ Ã¼Å© ¿ëµµ )----------------------------------------
+//-----------------------------( ìƒíƒœ ì²´í¬ ìš©ë„ )----------------------------------------
 
-static u32 sEccStatus; // ¿¡·¯ ¹ß»ı½Ã set Error Correcting Code
+static u32 sEccStatus; // ì—ëŸ¬ ë°œìƒì‹œ set Error Correcting Code
 static u32 sAxiError;
 static u32 sCacheError;
 
 static u32 sUartStatus;
 static u32 sTxStatusReg;
 static u32 sRxStatusReg;
-static u32 sPassCbitFlag = TRUE; // Åë°ú == TRUE, ½ÇÆĞ == FALSE
+static u32 sPassCbitFlag = TRUE; // í†µê³¼ == TRUE, ì‹¤íŒ¨ == FALSE
 
-//----------------------------( Àü¾Ğ ¹× ¿Âµµ ÃøÁ¤¿ë  )-------------------------------------
+//----------------------------( ì „ì•• ë° ì˜¨ë„ ì¸¡ì •ìš©  )-------------------------------------
 
 static u16 sRawVccInt;
 static u16 sRawVccAux;
@@ -55,9 +55,9 @@ double gVoltageBram;
 double gVoltageAux;
 double gCelcius;
 
-XUartPs_Config uartConfig; // (To do : ³ªÁß¿¡ Áö¿öÁÖ¼¼¿ä. -> Uart initÀº ¿ÜºÎ¿¡¼­ ¿Ï·áµÊ. )
+XUartPs_Config uartConfig; // (To do : ë‚˜ì¤‘ì— ì§€ì›Œì£¼ì„¸ìš”. -> Uart initì€ ì™¸ë¶€ì—ì„œ ì™„ë£Œë¨. )
 
-// -------------------( ³ªÁß¿¡ Task ½ÃÀÛ Àü ÇÑ¹ø init ÇØÁÖ¾î¾ß ÇÑ´Ù.)-------------------------
+// -------------------( ë‚˜ì¤‘ì— Task ì‹œì‘ ì „ í•œë²ˆ init í•´ì£¼ì–´ì•¼ í•œë‹¤.)-------------------------
 
 void initXsysMon()
 {
@@ -68,94 +68,94 @@ void initXsysMon()
 
 //void debug()
 //{
-//	        int int_vccint = (int)gVoltageInt;
-//	        int frac_vccint = (int)((gVoltageInt - int_vccint) * 1000);
-//	        int int_vccaux = (int)gVoltageBram;
-//	        int frac_vccaux = (int)((gVoltageAux - int_vccaux) * 1000);
-//	        int int_vccbram = (int)gVoltageAux;
-//	        int frac_vccbram = (int)((gVoltageBram - int_vccbram) * 1000);
-//	        int int_temp = (int)gCelcius;
-//	        int frac_temp = (int)((gCelcius - int_temp) * 1000);
+//           int int_vccint = (int)gVoltageInt;
+//           int frac_vccint = (int)((gVoltageInt - int_vccint) * 1000);
+//           int int_vccaux = (int)gVoltageBram;
+//           int frac_vccaux = (int)((gVoltageAux - int_vccaux) * 1000);
+//           int int_vccbram = (int)gVoltageAux;
+//           int frac_vccbram = (int)((gVoltageBram - int_vccbram) * 1000);
+//           int int_temp = (int)gCelcius;
+//           int frac_temp = (int)((gCelcius - int_temp) * 1000);
 //
-//	        xil_printf("VCCINT: %d.%03d V, VCCAUX: %d.%03d V, VCCBRAM: %d.%03d V, TEMP: %d.%03d'C ErrCNT: %d\r\n",
-//	                           int_vccint, frac_vccint,
-//	                           int_vccaux, frac_vccaux,
-//	                           int_vccbram, frac_vccbram,
-//	                           int_temp, frac_temp,sErrorCount);
+//           xil_printf("VCCINT: %d.%03d V, VCCAUX: %d.%03d V, VCCBRAM: %d.%03d V, TEMP: %d.%03d'C ErrCNT: %d\r\n",
+//                              int_vccint, frac_vccint,
+//                              int_vccaux, frac_vccaux,
+//                              int_vccbram, frac_vccbram,
+//                              int_temp, frac_temp,sErrorCount);
 //}
 
 // -------------------------------------------------------------------------------
 
 static void checkPower()
 {
-	// °¢ ÃøÁ¤ µ¥ÀÌÅÍ Raw °ªÀ¸·Î ¹Ş¾Æ¿À±â
+   // ê° ì¸¡ì • ë°ì´í„° Raw ê°’ìœ¼ë¡œ ë°›ì•„ì˜¤ê¸°
 
-	sRawVccInt = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VCCINT);
-	sRawVccAux = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VCCAUX);
-	sRawVccRam = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VBRAM);
-	sRawTemperture = XSysMon_GetAdcData(&sysMonInst, XSM_CH_TEMP);
+   sRawVccInt = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VCCINT);
+   sRawVccAux = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VCCAUX);
+   sRawVccRam = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VBRAM);
+   sRawTemperture = XSysMon_GetAdcData(&sysMonInst, XSM_CH_TEMP);
 
-	// Raw µ¥ÀÌÅÍ¸¦ ½ÇÁ¦ Àü¾Ğ,¿Âµµ·Î º¯È¯
+   // Raw ë°ì´í„°ë¥¼ ì‹¤ì œ ì „ì••,ì˜¨ë„ë¡œ ë³€í™˜
 
-	gVoltageInt = XSysMon_RawToVoltage(sRawVccInt);
-	gVoltageBram = XSysMon_RawToVoltage(sRawVccAux);
-	gVoltageAux = XSysMon_RawToVoltage(sRawVccRam);
-	gCelcius = XSysMon_RawToVoltage(sRawTemperture);
+   gVoltageInt = XSysMon_RawToVoltage(sRawVccInt);
+   gVoltageBram = XSysMon_RawToVoltage(sRawVccAux);
+   gVoltageAux = XSysMon_RawToVoltage(sRawVccRam);
+   gCelcius = XSysMon_RawToVoltage(sRawTemperture);
 
-	// debug();
+   // debug();
 
-	// ºñÁ¤»ó Àü¾Ğ È¤Àº ¿Âµµ °¨Áö½Ã sPassCbitFlag False·Î ÀüÈ¯
+   // ë¹„ì •ìƒ ì „ì•• í˜¹ì€ ì˜¨ë„ ê°ì§€ì‹œ sPassCbitFlag Falseë¡œ ì „í™˜
 
-	if ( gVoltageInt < 0.9 || gVoltageInt > 1.05 )
-	{
-		sPassCbitFlag = FALSE;
-	}
-	if ( gVoltageBram < 0.9 || gVoltageBram > 1.05 )
-	{
-		sPassCbitFlag = FALSE;
-	}
-	if ( gVoltageAux < 1.7 || gVoltageAux > 1.9 )
-	{
-		sPassCbitFlag = FALSE;
-	}
-	if ( gCelcius > 95 )
-	{
-		sPassCbitFlag = FALSE;
-	}
+   if ( gVoltageInt < 0.9 || gVoltageInt > 1.05 )
+   {
+      sPassCbitFlag = FALSE;
+   }
+   if ( gVoltageBram < 0.9 || gVoltageBram > 1.05 )
+   {
+      sPassCbitFlag = FALSE;
+   }
+   if ( gVoltageAux < 1.7 || gVoltageAux > 1.9 )
+   {
+      sPassCbitFlag = FALSE;
+   }
+   if ( gCelcius > 95 )
+   {
+      sPassCbitFlag = FALSE;
+   }
 }
 
 static void checkUart()
 {
-	sUartStatus = XUartPs_ReadReg(uartConfig->BaseAddress,XUARTPS_ISR_OFFSET);
+   sUartStatus = XUartPs_ReadReg(uartConfig->BaseAddress,XUARTPS_ISR_OFFSET);
 
-	if (sUartStatus & XUARTPS_IXR_PARITY)
-	{
-		sPassCbitFlag = FALSE; // Uart ÆĞ¸®Æ¼ ¿¡·¯ Set
-	}
-	if (sUartStatus & XUARTPS_IXR_FRAMING)
-	{
-		sPassCbitFlag = FALSE; // Uart ÇÁ·¹ÀÌ¹Ö ¿¡·¯ Set
-	}
-	if (sUartStatus & XUARTPS_IXR_OVER)
-	{
-		sPassCbitFlag = FALSE; // Uart ¹öÆÛ ¿À¹ö·± ¿¡·¯ Set
-	}
-	XUartPs_WriteReg(uartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
+   if (sUartStatus & XUARTPS_IXR_PARITY)
+   {
+      sPassCbitFlag = FALSE; // Uart íŒ¨ë¦¬í‹° ì—ëŸ¬ Set
+   }
+   if (sUartStatus & XUARTPS_IXR_FRAMING)
+   {
+      sPassCbitFlag = FALSE; // Uart í”„ë ˆì´ë° ì—ëŸ¬ Set
+   }
+   if (sUartStatus & XUARTPS_IXR_OVER)
+   {
+      sPassCbitFlag = FALSE; // Uart ë²„í¼ ì˜¤ë²„ëŸ° ì—ëŸ¬ Set
+   }
+   XUartPs_WriteReg(uartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
 }
 
 static void checkEthernet()
 {
-	sTxStatusReg = XEmacPs_ReadReg(EMAC_BASEADDR, XEMACPS_TXSR_OFFSET);
-	sRxStatusReg = XEmacPs_ReadReg(EMAC_BASEADDR, XEMACPS_RXSR_OFFSET);
+   sTxStatusReg = XEmacPs_ReadReg(EMAC_BASEADDR, XEMACPS_TXSR_OFFSET);
+   sRxStatusReg = XEmacPs_ReadReg(EMAC_BASEADDR, XEMACPS_RXSR_OFFSET);
 
-    if (sTxStatusReg != 0) // 0ÀÌ ¾Æ´Ï¶ó¸é Error True False·Î ³ª´µ´Â°Ô ¾Æ´Ô
+    if (sTxStatusReg != 0) // 0ì´ ì•„ë‹ˆë¼ë©´ Error True Falseë¡œ ë‚˜ë‰˜ëŠ”ê²Œ ì•„ë‹˜
     {
-    	sPassCbitFlag = FALSE;
+       sPassCbitFlag = FALSE;
         XEmacPs_WriteReg(EMAC_BASEADDR, XEMACPS_TXSR_OFFSET, sTxStatusReg);
     }
-    if ((sRxStatusReg & ~0x01) != 0) // Ã¹ ºñÆ®¸¸ Á¦¿ÜÇÏ°í 0ÀÎÁö °Ë»ç
+    if ((sRxStatusReg & ~0x01) != 0) // ì²« ë¹„íŠ¸ë§Œ ì œì™¸í•˜ê³  0ì¸ì§€ ê²€ì‚¬
     {
-    	sPassCbitFlag = FALSE;
+       sPassCbitFlag = FALSE;
         XEmacPs_WriteReg(EMAC_BASEADDR, XEMACPS_RXSR_OFFSET, sRxStatusReg);
     }
 }
@@ -168,7 +168,7 @@ static void checkMemory()
 
     if (sEccStatus == TRUE || sAxiError == TRUE || sCacheError == TRUE )
     {
-    	sPassCbitFlag = FALSE;
+       sPassCbitFlag = FALSE;
     }
 
     Xil_Out32(0xF800606C, sEccStatus);
@@ -178,34 +178,34 @@ static void checkMemory()
 
 static void checkRegister()
 {
-	checkUart();
-	checkEthernet();
-	checkMemory();
+   checkUart();
+   checkEthernet();
+   checkMemory();
 }
 
 void runCbit()
 {
-	static int sErrorCount;
-	while(1)
-	{
-		if(sErrorCount > 5)
-		{
-			explode(); // 5¹ø ¿¬¼Ó ¿¡·¯½Ã ÀÚÆø
-		}
-		checkPower();
-		if ( sPassCbitFlag == TRUE )
-		{
-			checkRegister();
-		}
-		if ( sPassCbitFlag == FALSE )
-		{
-			sErrorCount += 1;
-		}
-		else if ( sPassCbitFlag == TRUE )
-		{
-			sErrorCount = 0;
-		}
-	}
+   static int sErrorCount;
+   while(1)
+   {
+      if(sErrorCount > 5)
+      {
+         explode(); // 5ë²ˆ ì—°ì† ì—ëŸ¬ì‹œ ìí­
+      }
+      checkPower();
+      if ( sPassCbitFlag == TRUE )
+      {
+         checkRegister();
+      }
+      if ( sPassCbitFlag == FALSE )
+      {
+         sErrorCount += 1;
+      }
+      else if ( sPassCbitFlag == TRUE )
+      {
+         sErrorCount = 0;
+      }
+   }
 }
 
 void cbitTaskMain(void *param)
