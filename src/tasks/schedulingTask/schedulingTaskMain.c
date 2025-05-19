@@ -1,9 +1,9 @@
 #include "FreeRTOS.h"
 #include "global.h"
 /**
- * [°¢ ÅÂ½ºÅ©ÀÇ ¸¶°¨ ½Ã°£ ¼³Á¤]
+ * [ï¿½ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½]
  */
-// UDP_RECEIVE_DEADLINE: IMU µ¥ÀÌÅÍ Ã³¸®±îÁö °É¸®´Â ¸¶°¨ ½Ã°£
+// UDP_RECEIVE_DEADLINE: IMU ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
 const static int UDP_RECEIVE_DEADLINE = 1000;
 const static int NAVIGATION_DEADLINE = 1000;
 const static int GUIDANCE_DEADLINE = 1000;
@@ -22,32 +22,32 @@ void schedulingTaskMain(void *pvParameters)
     {
 
     	last = xTaskGetTickCount();
-    	// 1. UDP µ¥ÀÌÅÍ(IMU µ¥ÀÌÅÍ ¼ö½Å) Ã³¸® ÈÄ notify give¸¦ ´ë±â
+    	// 1. UDP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(IMU ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½) Ã³ï¿½ï¿½ ï¿½ï¿½ notify giveï¿½ï¿½ ï¿½ï¿½ï¿½
     	xil_printf("WAKE - UDP_RECEIVE\r\n", pcTaskGetName(NULL));
     	xTaskNotifyGive(xUdpReceiveTaskHandle);
     	vTaskDelayUntil(&last, pdMS_TO_TICKS(UDP_RECEIVE_DEADLINE));
-    	// 2. ½ºÄÉÁÙ¸µ ÅÂ½ºÅ©ÀÇ ½ÃÀÛ ½Ã°£(½ÃÀÛ Æ½) ¼³Á¤
-    	// 3. Ç×¹ý ÅÂ½ºÅ© give && delay
+    	// 2. ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½Â½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½(ï¿½ï¿½ï¿½ï¿½ Æ½) ï¿½ï¿½ï¿½ï¿½
+    	// 3. ï¿½×¹ï¿½ ï¿½Â½ï¿½Å© give && delay
     	xil_printf("WAKE - Nav\r\n", pcTaskGetName(NULL));
     	xTaskNotifyGive(xNavigationTaskHandle);
     	vTaskDelayUntil(&last, pdMS_TO_TICKS(NAVIGATION_DEADLINE));
-    	// 4. À¯µµ ÅÂ½ºÅ© give && delay
+    	// 4. ï¿½ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å© give && delay
     	xil_printf("WAKE - gui\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xGuidanceTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(GUIDANCE_DEADLINE));
-		// 5. Á¶Á¾ ÅÂ½ºÅ© give && delay
+		// 5. ï¿½ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å© give && delay
     	xil_printf("WAKE - cont\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xControlTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(CONTOL_DEADLINE));
-		// 6. UART Àü¼Û ÅÂ½ºÅ© give && delay
+		// 6. UART ï¿½ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å© give && delay
     	xil_printf("WAKE - uart send\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xUartSendTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(UART_SEND_DEADLINE));
-		// 7. CBIT ÅÂ½ºÅ© give && delay
+		// 7. CBIT ï¿½Â½ï¿½Å© give && delay
     	xil_printf("WAKE - cbit\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xCbitTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(CBIT_DEADLINE));
-		// 8. Telemetry ÅÂ½ºÅ© give && delay
+		// 8. Telemetry ï¿½Â½ï¿½Å© give && delay
     	xil_printf("WAKE - tele\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xTelemetryTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(TELEMETRY_DEADLINE));
