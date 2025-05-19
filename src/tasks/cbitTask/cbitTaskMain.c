@@ -3,27 +3,27 @@
 #include "gsgTypes.h"
 #include "global.h"
 
-//static int sPassCbitFlag = TRUE; // ��� == TRUE, ���� == FALSE
+//static int sPassCbitFlag = TRUE; // 占쏙옙占� == TRUE, 占쏙옙占쏙옙 == FALSE
 //
 //int xADC_IsConversionDone();
 //
 //static void checkPower()
 //{
 //	/*
-//	 * 1. XADC ��ȯ ���
-//	 * 2. �� �б�
-//	 * 3. �Ӱ谪 ��
-//	 * �ʱ�ȭ ������ �̹� PBIT���� �����Ͽ������� �� ���� ����
+//	 * 1. XADC 占쏙옙환 占쏙옙占�
+//	 * 2. 占쏙옙 占싻깍옙
+//	 * 3. 占쌈계값 占쏙옙
+//	 * 占십깍옙화 占쏙옙占쏙옙占쏙옙 占싱뱄옙 PBIT占쏙옙占쏙옙 占쏙옙占쏙옙占싹울옙占쏙옙占쏙옙占쏙옙 占쏙옙 占쏙옙占쏙옙 占쏙옙占쏙옙
 //	 */
-//	/*****************************[�ӽ� ����]*****************************/
-//	//1. XADC ��ȯ ���
+//	/*****************************[占쌈쏙옙 占쏙옙占쏙옙]*****************************/
+//	//1. XADC 占쏙옙환 占쏙옙占�
 //	while (!xADC_IsConversionDone());
 //
-//	//2. �� �б�
+//	//2. 占쏙옙 占싻깍옙
 //	int rawValue = xADC_GetData();
 //    double measuredVoltage = xADC_ConvertToVoltage(rawValue);
 //
-//	//3.�Ӱ谪 ��
+//	//3.占쌈계값 占쏙옙
 //	if (measuredVoltage < gVoltage1)
 //	{
 //		sPassCbitFlag == FALSE;
@@ -38,19 +38,19 @@
 //static void checkRegister()
 //{
 //	/*
-//	 * 1. ��緹������ �˻�
+//	 * 1. 占쏙옙渶뱄옙占쏙옙占쏙옙占� 占싯삼옙
 //	 */
-//	/*****************************[�ӽ� ����]*****************************/
+//	/*****************************[占쌈쏙옙 占쏙옙占쏙옙]*****************************/
 //
-//	// 1. ��緹������ �˻�
+//	// 1. 占쏙옙渶뱄옙占쏙옙占쏙옙占� 占싯삼옙
 //	if (checkAllRegister() == TRUE)
 //	{
-//		// �������Ͱ� �̻��Ҷ� set �Ǵ���, �����϶� set �Ǵ��� ���� �Ǵ� �Ұ�
+//		// 占쏙옙占쏙옙占쏙옙占싶곤옙 占싱삼옙占쌀띰옙 set 占실댐옙占쏙옙, 占쏙옙占쏙옙占싹띰옙 set 占실댐옙占쏙옙 占쏙옙占쏙옙 占실댐옙 占쌀곤옙
 //		sPassCbitFlag = FALSE;
 //	}
 //}
 
-void run(void)
+static void run(void)
 {
 
 }
@@ -58,11 +58,11 @@ void run(void)
 void cbitTaskMain( void *pvParameters )
 {
 	/*
-	 * 1. ���� �˻�
-	 * 2. �������� �˻�
-	 * 3. �÷��� �˻� �� ����
+	 * 1. 占쏙옙占쏙옙 占싯삼옙
+	 * 2. 占쏙옙占쏙옙占쏙옙占쏙옙 占싯삼옙
+	 * 3. 占시뤄옙占쏙옙 占싯삼옙 占쏙옙 占쏙옙占쏙옙
 	 */
-	/*****************************[�ӽ� ����]*****************************/
+	/*****************************[占쌈쏙옙 占쏙옙占쏙옙]*****************************/
     for(;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -72,17 +72,17 @@ void cbitTaskMain( void *pvParameters )
     }
 //	while(1)
 //	{
-//		// 1. ���� �˻�
+//		// 1. 占쏙옙占쏙옙 占싯삼옙
 //		checkPower();
 //		if ( sPassCbitFlag == TRUE )
 //		{
-//		// 2. �������� �˻�
+//		// 2. 占쏙옙占쏙옙占쏙옙占쏙옙 占싯삼옙
 //			checkRegister();
 //		}
-//		// 3. �÷��� �˻� �� ����
+//		// 3. 占시뤄옙占쏙옙 占싯삼옙 占쏙옙 占쏙옙占쏙옙
 //		if ( sPassCbitFlag == FALSE )
 //		{
-//			//�����Ѵ�.
+//			//占쏙옙占쏙옙占싼댐옙.
 //		}
 //		vTaskResume(xTelemetryTaskHandle);
 //		vTaskSuspend(xCbitTaskHandle);

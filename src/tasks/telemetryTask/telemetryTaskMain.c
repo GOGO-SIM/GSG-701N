@@ -106,7 +106,7 @@ static void runTelemetry()
 
 }
 
-void run()
+static void run()
 {
     
 }
