@@ -4,13 +4,16 @@
 
 #include <stdint.h>
 
+#pragma pack(push, 1)
 typedef struct _tDVector3
 {
 	double x;
 	double y;
 	double z;
 } tDVector3;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct _tDVector4
 {
 	double w;
@@ -18,7 +21,9 @@ typedef struct _tDVector4
 	double y;
 	double z;
 } tDVector4;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct _tGsmpMessageHeader
 {
 	uint8_t startflag;
@@ -29,7 +34,9 @@ typedef struct _tGsmpMessageHeader
 	uint16_t msgLen;
 
 } tGsmpMessageHeader;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct sGsmpMsg
 {
 	tGsmpMessageHeader header;
@@ -37,36 +44,46 @@ typedef struct sGsmpMsg
 	uint16_t CRC;
 
 } tGsmpMsg;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct _tImuPayload
 {
 	tDVector3 acc;
 	tDVector3 gyro;
 } tImuPayload;
+#pragma pack(pop)
 
 typedef tImuPayload tImuData;
 
+#pragma pack(push, 1)
 typedef struct _tSeekerPayload
 {
 	tDVector3 los;
 	double distance;
 } tSeekerPayload;
+#pragma pack(pop)
 
 typedef tSeekerPayload tSeekerData;
 
+#pragma pack(push, 1)
 typedef struct _tACBPayload
 {
 	int currentStatus;
 	tDVector3 canadCmd;
 } tAcbPayload;
+#pragma pack(pop)
 
 // controlTask input
+#pragma pack(push, 1)
 typedef struct _tAccCmd
 {
 	int currentStatus;
 	tDVector3 canadCmd;
 } tAccCmd;
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 typedef struct _tTelemetryData
 {
 	int cnt;
@@ -78,5 +95,5 @@ typedef struct _tTelemetryData
 	tDVector3 controlCmd;
 
 } tTelemetryData;
-
+#pragma pack(pop)
 #endif

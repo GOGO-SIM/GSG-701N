@@ -32,6 +32,7 @@
 #endif
 
 /* Ȱ���� ���� ���� extern */
+extern int gRecvFlag;
 extern uint32_t gFailCount[4];
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
@@ -41,7 +42,7 @@ extern tDVector3 gControlCmd;
 extern uint32_t gGcuStatus;
 
 /* from init */
-extern XUartPs Uart_Ps;
+extern XUartPs gUartPs;
 extern XSysMon sysMonInst;
 extern XSysMon_Config *configPtr;
 

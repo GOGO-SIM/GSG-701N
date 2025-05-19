@@ -1,2 +1,6 @@
 /Debug/
 /Release/
+.project
+GSG-701N.prj
+.settings
+_ide/
