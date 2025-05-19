@@ -6,6 +6,9 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "xil_printf.h"
+#include "xuartps.h"
+#include "xsysmon.h"
+#include "xparameters.h"
 #include "gsgTypes.h"
 
 /* ��ũ�� ���� */
@@ -36,6 +39,11 @@ extern tDVector3 gAccCmd;
 extern tDVector4 gAttitude;
 extern tDVector3 gControlCmd;
 extern uint32_t gGcuStatus;
+
+/* from init */
+extern XUartPs Uart_Ps;
+extern XSysMon sysMonInst;
+extern XSysMon_Config *configPtr;
 
 /**
  * [task handlers]

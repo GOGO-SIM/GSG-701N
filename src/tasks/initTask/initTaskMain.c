@@ -10,11 +10,8 @@
 #include "lwip/netbuf.h"
 #include "lwip/ip_addr.h"
 #include "netif/xemacpsif.h"
-#include "xparameters.h"
 #include "platform_config.h"
-#include "xuartps.h"
-#include "xsysmon.h"
-#include "xparameters.h"
+
 
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
