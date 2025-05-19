@@ -48,9 +48,9 @@ void uartSendDataRun()
 
 	uint8_t txBuffer[bufferSizeNoCRC + crcSize]; // CRC 포함
 //	test data
-	gControlCmd.x = 1.02;
-	gControlCmd.y = 2.03;
-	gControlCmd.z = 3.04;
+//	gControlCmd.x = 1.02;
+//	gControlCmd.y = 2.03;
+//	gControlCmd.z = 3.04;
 	// 헤더 설정
 	targetMsg.header.startflag = START_FLAG;
 	targetMsg.header.msgId = ACB_MSG_ID;
@@ -65,24 +65,16 @@ void uartSendDataRun()
 	memcpy(tempBuf, (const uint8_t*) &targetMsg.header, headerSize);
 	memcpy(tempBuf + headerSize, (const uint8_t*) targetMsg.payload, sizeof(gControlCmd));
 	uint16_t crc = calcCrc(tempBuf, sizeof(tempBuf));
-	xil_printf("tempBuf = %d\r\n", sizeof(tempBuf));
-	xil_printf("Header = %d\r\n", headerSize);   // 예상 7
-	xil_printf("Payload = %d\r\n", cmdSize);         // 예상 24
-	xil_printf("TX total = %d\r\n", bufferSize);           // 예상 33
+//	xil_printf("tempBuf = %d\r\n", sizeof(tempBuf));
+//	xil_printf("Header = %d\r\n", headerSize);   // 예상 7
+//	xil_printf("Payload = %d\r\n", cmdSize);         // 예상 24
+//	xil_printf("TX total = %d\r\n", bufferSize);           // 예상 33
 
 	// 전송 버퍼 구성
 	memcpy(txBuffer, &targetMsg.header, headerSize);
 	memcpy(txBuffer + headerSize, (const uint8_t*) targetMsg.payload, cmdSize);
 	txBuffer[bufferSizeNoCRC + 0] = crc & 0xFF;        // LSB
 	txBuffer[bufferSizeNoCRC + 1] = (crc >> 8) & 0xFF; // MSB
-
-	//xil_printf("TX total = %d\r\n", sizeof(txBuffer));
-	//xil_printf("x = %d y = %d z = %d\r\n", (int)(gControlCmd.x * 100), (int)(gControlCmd.y * 100), (int)(gControlCmd.z * 100));
-
-//	xil_printf("x=%.2f, y=%.2f, z=%.2f\r\n", gControlCmd.x, gControlCmd.y, gControlCmd.z);
-//	for (int i = 0; i < 33; ++i) {
-//	    xil_printf("%02X ", txBuffer[i]);
-//	}
 
 	// 전송
 	sendData(txBuffer, sizeof(txBuffer));
