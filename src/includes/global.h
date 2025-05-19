@@ -2,11 +2,11 @@
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_
 
-
 #include <stdint.h>
-#include "gsgTypes.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "xil_printf.h"
+#include "gsgTypes.h"
 
 /* 매크로 정의 */
 #ifndef TRUE

@@ -20,6 +20,11 @@ void explode();		// TODO : 삭제
 int initUartPs();
 void sendData(uint8_t* buffer, uint16_t len);
 
+static void run()
+{
+    
+}
+
 void uartSendTaskMain(void *pvParameters) {
 	// TODO : initTask #50
 
@@ -30,10 +35,9 @@ void uartSendTaskMain(void *pvParameters) {
 	}
 	for(;;)
 	{
-
-		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 		uartSendDataRun();
-		vTaskDelay(100);
 	}
 }
 
@@ -43,14 +47,14 @@ void uartSendDataRun()
 	// 1. gIsUartReceive가 True인지 확인한다.
 	if(gRecvFlag == FALSE)
 	{
-		if(++gRecvMissCount >= 10)
+		if(++gFailCount[UART_FAIL] >= 10)
 		{
 			explode();
 		}
 	}
 	else
 	{
-		gRecvMissCount = 0;
+		gFailCount[UART_FAIL] = 0;
 	}
 	gRecvFlag = FALSE;
 
