@@ -13,8 +13,8 @@
 #include "platform_config.h"
 
 
-#define SERVER_IP_ADDR  "192.168.1.4"   // �꽌踰� IP
-#define SERVER_PORT     1234            // �꽌踰� �룷�듃
+#define SERVER_IP_ADDR  "192.168.1.4"   // Server IP address
+#define SERVER_PORT     1234            // Server port number
 
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
