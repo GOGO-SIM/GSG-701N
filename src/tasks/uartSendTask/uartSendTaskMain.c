@@ -5,20 +5,24 @@
 #include "xuartps.h"
 #include "xparameters.h"
 
-static int recvFlag = TRUE;
 extern int gRecvMissCount;
 
 
 static XUartPs Uart_Ps;
+static const uint8_t headerSize = sizeof(tGsmpMessageHeader);
+static const uint8_t cmdSize = sizeof(gControlCmd);
+static const uint8_t crcSize = 2;
+static const uint8_t bufferSizeNoCRC = sizeof(tGsmpMessageHeader) + sizeof(gControlCmd);
+
 
 void uartSendDataRun();
-void explode();		// TODO : »èÁ¦
+void explode();		// TODO : ì‚­ì œ
 int initUartPs();
 void sendData(uint8_t* buffer, uint16_t len);
 
 void uartSendTaskMain(void *pvParameters) {
 	// TODO : initTask #50
-	//xil_printf("1");
+
 	int uartStatus = initUartPs();
 	if(uartStatus == XST_FAILURE)
 	{
@@ -26,80 +30,89 @@ void uartSendTaskMain(void *pvParameters) {
 	}
 	for(;;)
 	{
-		//xil_printf("2");
-		//ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		uartSendDataRun();
+		vTaskDelay(100);
 	}
 }
 
 void uartSendDataRun()
 {
-	//xil_printf("3");
 	tGsmpMsg targetMsg;
-	// 1. gIsUartReceive°¡ TrueÀÎÁö È®ÀÎÇÑ´Ù.
-	if (recvFlag != FALSE)
+	// 1. gIsUartReceiveê°€ Trueì¸ì§€ í™•ì¸í•œë‹¤.
+	if(gRecvFlag == FALSE)
 	{
-		//xil_printf("4");
-		uint8_t txBuffer[sizeof(tGsmpMessageHeader) + sizeof(gControlCmd) + 2]; // CRC Æ÷ÇÔ
-
-		// test data
-		gControlCmd.x = 1.02;
-		gControlCmd.y = 2.03;
-		gControlCmd.z = 3.04;
-		// Çì´õ ¼³Á¤
-		targetMsg.header.startflag = START_FLAG;
-		targetMsg.header.msgId = ACB_MSG_ID;
-		targetMsg.header.srcId = GCU_ID;
-		targetMsg.header.destId = ACB_ID;
-		targetMsg.header.msgStat = OK;
-		targetMsg.header.msgLen = sizeof(gControlCmd);
-		targetMsg.payload = &gControlCmd;
-		//xil_printf("5");
-		// CRC °è»ê¿ë ÀÓ½Ã ¹öÆÛ
-		uint8_t tempBuf[sizeof(tGsmpMessageHeader) + sizeof(gControlCmd)];
-		memcpy(tempBuf, (const uint8_t*) &targetMsg.header, sizeof(tGsmpMessageHeader));
-		memcpy(tempBuf + sizeof(tGsmpMessageHeader), (const uint8_t*) targetMsg.payload, sizeof(gControlCmd));
-		uint16_t crc = calcCrc(tempBuf, sizeof(tempBuf));
-		//xil_printf("6");
-		xil_printf("Header = %d\n", sizeof(tGsmpMessageHeader));   // ¿¹»ó 7
-		xil_printf("Payload = %d\n", sizeof(gControlCmd));         // ¿¹»ó 24
-		xil_printf("TX total = %d\n", sizeof(txBuffer));           // ¿¹»ó 33
-
-		// Àü¼Û ¹öÆÛ ±¸¼º
-		memcpy(txBuffer, &targetMsg.header, sizeof(tGsmpMessageHeader));
-		memcpy(txBuffer + sizeof(tGsmpMessageHeader), (const uint8_t*) targetMsg.payload, sizeof(gControlCmd));
-		txBuffer[sizeof(tGsmpMessageHeader) + sizeof(gControlCmd) + 0] = crc & 0xFF;        // LSB
-		txBuffer[sizeof(tGsmpMessageHeader) + sizeof(gControlCmd) + 1] = (crc >> 8) & 0xFF; // MSB
-		xil_printf("%d\n", sizeof(txBuffer));
-		// Àü¼Û
-		sendData(txBuffer, sizeof(txBuffer));
-		vTaskDelay(100);
+		if(++gRecvMissCount >= 10)
+		{
+			explode();
 		}
+	}
+	else
+	{
+		gRecvMissCount = 0;
+	}
+	gRecvFlag = FALSE;
+
+	uint8_t txBuffer[bufferSizeNoCRC + crcSize]; // CRC í¬í•¨
+//	test data
+	gControlCmd.x = 1.02;
+	gControlCmd.y = 2.03;
+	gControlCmd.z = 3.04;
+	// í—¤ë” ì„¤ì •
+	targetMsg.header.startflag = START_FLAG;
+	targetMsg.header.msgId = ACB_MSG_ID;
+	targetMsg.header.srcId = GCU_ID;
+	targetMsg.header.destId = ACB_ID;
+	targetMsg.header.msgStat = OK;
+	targetMsg.header.msgLen = cmdSize;
+	targetMsg.payload = &gControlCmd;
+
+	// CRC ê³„ì‚°ìš© ì„ì‹œ ë²„í¼
+	uint8_t tempBuf[bufferSizeNoCRC];
+	memcpy(tempBuf, (const uint8_t*) &targetMsg.header, headerSize);
+	memcpy(tempBuf + headerSize, (const uint8_t*) targetMsg.payload, sizeof(gControlCmd));
+	uint16_t crc = calcCrc(tempBuf, sizeof(tempBuf));
+
+//	xil_printf("Header = %d\r\n", headerSize);   // ì˜ˆìƒ 7
+//	xil_printf("Payload = %d\r\n", cmdSize);         // ì˜ˆìƒ 24
+//	xil_printf("TX total = %d\r\n", bufferSize);           // ì˜ˆìƒ 33
+
+	// ì „ì†¡ ë²„í¼ êµ¬ì„±
+	memcpy(txBuffer, &targetMsg.header, headerSize);
+	memcpy(txBuffer + headerSize, (const uint8_t*) targetMsg.payload, cmdSize);
+	txBuffer[bufferSizeNoCRC + 0] = crc & 0xFF;        // LSB
+	txBuffer[bufferSizeNoCRC + 1] = (crc >> 8) & 0xFF; // MSB
+
+	xil_printf("TX total = %d\r\n", sizeof(txBuffer));
+
+	// ì „ì†¡
+	sendData(txBuffer, sizeof(txBuffer));
 }
 
 int initUartPs()
 {
-	// UART ¼³Á¤ Á¤º¸¸¦ ´ãÀ» ±¸Á¶Ã¼ Æ÷ÀÎÅÍ ¼±¾ğ
+	// UART ì„¤ì • ì •ë³´ë¥¼ ë‹´ì„ êµ¬ì¡°ì²´ í¬ì¸í„° ì„ ì–¸
     XUartPs_Config *Config;
     int Status;
 
-    // UART µğ¹ÙÀÌ½º ID¿¡ ÇØ´çÇÏ´Â ¼³Á¤ Á¤º¸¸¦ °Ë»öÇØ¼­ Config¿¡ ÀúÀå
-    // ÀÌ Á¤º¸¿¡´Â BaseAddress, BaudRate µîÀÇ ÇÏµå¿ş¾î Á¤º¸°¡ Æ÷ÇÔµÊ
+    // UART ë””ë°”ì´ìŠ¤ IDì— í•´ë‹¹í•˜ëŠ” ì„¤ì • ì •ë³´ë¥¼ ê²€ìƒ‰í•´ì„œ Configì— ì €ì¥
+    // ì´ ì •ë³´ì—ëŠ” BaseAddress, BaudRate ë“± í•˜ë“œì›¨ì–´ ì •ë³´ í¬í•¨
     Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
     if (Config == NULL)
     {
-    	xil_printf("Config is NULL\n");
+    	xil_printf("Config is NULL\r\n");
     	return XST_FAILURE;
     }
 
     Status = XUartPs_CfgInitialize(&Uart_Ps, Config, Config->BaseAddress);
     if (Status != XST_SUCCESS)
     {
-    	xil_printf("State is FAIL\n");
+    	xil_printf("State is FAIL\r\n");
     	return XST_FAILURE;
    	}
 
-    // ÀÎ½ºÅÏ½º ÃÊ±âÈ­ ½Ã, default °ªÀÌ19200bpsÀÌ±â ¶§¹®¿¡ ÇÊ¿ä ½Ã ¸í½Ã
+    // ì¸ìŠ¤í„´ìŠ¤ ì´ˆê¸°í™” ì‹œ, default ê°’ì´19200bpsì´ê¸° ë•Œë¬¸ì— í•„ìš” ì‹œ ëª…ì‹œ
     XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
     return XST_SUCCESS;
 }
@@ -107,7 +120,8 @@ int initUartPs()
 
 void sendData(uint8_t* buffer, uint16_t len)
 {
-    // len ¹ÙÀÌÆ®¸¸Å­ UART·Î Àü¼Û
+    // len ë°”ì´íŠ¸ë§Œí¼ UARTë¡œ ì „ì†¡
     XUartPs_Send(&Uart_Ps, buffer, len);
+    xil_printf("\r\n");
     //xil_printf("TX: 0x%02X %02X %02X %02X\n", buffer[0], buffer[1], buffer[2], buffer[3]);
 }
