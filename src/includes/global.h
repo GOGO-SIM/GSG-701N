@@ -42,7 +42,7 @@ extern tDVector3 gControlCmd;
 extern uint32_t gGcuStatus;
 
 /* from init */
-extern XUartPs Uart_Ps;
+extern XUartPs gUartPs;
 extern XSysMon sysMonInst;
 extern XSysMon_Config *configPtr;
 
