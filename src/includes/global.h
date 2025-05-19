@@ -6,9 +6,12 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "xil_printf.h"
+#include "xuartps.h"
+#include "xsysmon.h"
+#include "xparameters.h"
 #include "gsgTypes.h"
 
-/* ¸ÅÅ©·Î Á¤ÀÇ */
+/* ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -24,8 +27,11 @@
 #ifndef ERROR
 #define ERROR -1
 #endif
+#ifndef UART_BAUD
+#define UART_BAUD 115200
+#endif
 
-/* È°¿ëÇÒ Àü¿ª º¯¼ö extern */
+/* È°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ extern */
 extern uint32_t gFailCount[4];
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
@@ -33,6 +39,11 @@ extern tDVector3 gAccCmd;
 extern tDVector4 gAttitude;
 extern tDVector3 gControlCmd;
 extern uint32_t gGcuStatus;
+
+/* from init */
+extern XUartPs Uart_Ps;
+extern XSysMon sysMonInst;
+extern XSysMon_Config *configPtr;
 
 /**
  * [task handlers]
@@ -52,7 +63,7 @@ extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
 extern TaskHandle_t xPbitFailTaskHandle;
 
-/* enum Å¬·¡½º Á¤ÀÇ */
+/* enum Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 enum eGcuStatus
 {
 	NORMAL = 0,
@@ -98,7 +109,7 @@ enum eStatus
 };
 
 
-/*=====CBIT&PBIT Àü¾Ð ¹× ¿Âµµ  Ã¼Å©  º¯¼ö=====*/
+/*=====CBIT&PBIT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Âµï¿½  Ã¼Å©  ï¿½ï¿½ï¿½ï¿½=====*/
 extern const double gVoltage1;
 extern const double gVoltage2;
 extern const double gVoltage3;
