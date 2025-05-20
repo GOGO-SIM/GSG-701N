@@ -39,6 +39,9 @@ int gRecvMissCount = 0;
  */
 
 XUartPs gUartPs;
+XUartPs_Config *gUartConfig;
+XSysMon gSysMonInst;
+XSysMon_Config *gXadcConfig;
 
 uint32_t gFailCount[4];
 

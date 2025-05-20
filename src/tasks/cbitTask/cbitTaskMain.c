@@ -43,14 +43,28 @@ void debug(int err)
             gVoltageInt,gVoltageAux,gVoltageBram ,gCelcius,err);
 }
 
+static u16 readEthStatus()
+{
+	sEthStatReadCmd = MDIO_CMD_START |  // MDIO 명령 시작
+		    		  	  	  MDIO_CMD_READ | // MDIO 읽어오기 명령
+							  MDIO_PHY_0 | // 읽어올 위치
+							  MDIO_PHY_BASIC_STATUS; // 읽어올 정보
+
+    Xil_Out32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET, sEthStatReadCmd);
+
+    while ( (Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_NWSR_OFFSET ) & XEMACPS_NWSR_MDIOIDLE_MASK) == 0);
+
+	return Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET) & 0xFFFF;
+}
+
 static void checkPower()
 {
    // 각 측정 데이터 Raw 값으로 받아오기
 
-   sRawVccInt = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VCCINT);
-   sRawVccAux = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VCCAUX);
-   sRawVccRam = XSysMon_GetAdcData(&sysMonInst, XSM_CH_VBRAM);
-   sRawTemperture = XSysMon_GetAdcData(&sysMonInst, XSM_CH_TEMP);
+   sRawVccInt = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VCCINT);
+   sRawVccAux = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VCCAUX);
+   sRawVccRam = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VBRAM);
+   sRawTemperture = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_TEMP);
 
    // Raw 데이터를 실제 전압,온도로 변환
 
@@ -95,48 +109,51 @@ static void checkUart()
    {
 	   gPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
    }
-
+   //디버깅용------------
+   if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
+   {
+	   printf("Uart Passed | ");
+   }
+   //디버깅용------------
    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
 }
 
 static void checkMemory()
 {
-	sOcmStatus = Xil_In32(OCM_IRQ_STS_ADDR); // OCM 인터럽트 정보를 받아온다.
+   sOcmStatus = Xil_In32(OCM_IRQ_STS_ADDR); // OCM 인터럽트 정보를 받아온다.
 
-    if (sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR))
-    {
-    	printf("Memory Failed  | ");
-    	gPassCbitFlag = FALSE;
-    	Xil_Out32(OCM_IRQ_STS_ADDR,sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR) );
-    }
-    else
-    {
-    	printf("Memory Passed | "); //디버깅용 나중에 else는 삭제
-    }
+   if (sOcmStatus & OCM_SINGLE_ERR)
+   {
+	   gPassCbitFlag = FALSE;
+   }
+   if (sOcmStatus & OCM_MULTI_ERR)
+   {
+	   gPassCbitFlag = FALSE;
+   }
+   //디버깅용------------
+   if (!(sOcmStatus & (OCM_SINGLE_ERR|OCM_MULTI_ERR)))
+   {
+  	   printf("Memory Passed | ");
+   }
+   //디버깅용------------
+   Xil_Out32(OCM_IRQ_STS_ADDR, sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR)); //Error Reset
 }
 
 static void checkEthernet()
 {
-	    sEthStatReadCmd = MDIO_CMD_START |  // MDIO 명령 시작
-	    		  	  	  MDIO_CMD_READ | // MDIO 읽어오기 명령
-						  MDIO_PHY_0 | // 읽어올 위치
-						  MDIO_PHY_BASIC_STATUS; // 읽어올 정보
+   sEthernetStatus = readEthStatus();
 
-	    Xil_Out32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET, sEthStatReadCmd);
-
-	    while ( (Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_NWSR_OFFSET ) & XEMACPS_NWSR_MDIOIDLE_MASK) == 0);
-
-	    sEthernetStatus = Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET) & 0xFFFF; //하위 16비트 읽기
-
-	    if ( (sEthernetStatus & 0x4) == FALSE ) // 이더넷 연결 FALSE
-	     {
-	    	 printf("Ethernet Failed | ");
-	         gPassCbitFlag = FALSE;
-	     }
-	    else
-	    {
-	    	 printf("Ethernet Passed | "); // 디버깅용
-	    }
+   if ((sEthernetStatus & 0x4) == FALSE) // 이더넷 연결 FALSE
+   {
+	   printf("Ethernet Failed | ");
+	   gPassCbitFlag = FALSE;
+   }
+   //디버깅용------------
+   else
+   {
+	   printf("Ethernet Passed | "); // 디버깅용
+    }
+   //디버깅용------------
 }
 
 static void checkRegister()
@@ -154,6 +171,7 @@ static void runCbit(void)
       if(sErrorCount >= 5)
       {
     	  xil_printf("explode();\n");
+    	  vTaskSuspendAll(); //폭발해서 모든 태스크 정지
          //explode(); 5번 연속 에러시 자폭
       }
       checkPower();
@@ -172,8 +190,8 @@ static void runCbit(void)
       gPassCbitFlag = TRUE;
       //디버깅용------------
       debug(sErrorCount);
-      //디버깅용------------
       vTaskDelay(20);
+      //디버깅용------------
    }
 }
 

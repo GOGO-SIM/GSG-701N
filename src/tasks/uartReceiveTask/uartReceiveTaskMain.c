@@ -20,7 +20,7 @@ void uartReceiveTaskMain()
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-		run();
+		//run();
     }
 	/*
 	 * 1. recvFlag占쏙옙 true占쏙옙 占쏙옙占쏙옙占싼댐옙.
