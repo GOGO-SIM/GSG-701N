@@ -16,7 +16,6 @@
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
 
-XUartPs gUartPs;
 XSysMon sysMonInst;
 XSysMon_Config *configPtr;
 struct netbuf *recvBuf;
