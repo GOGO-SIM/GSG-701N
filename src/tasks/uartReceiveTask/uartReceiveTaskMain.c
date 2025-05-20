@@ -115,7 +115,3 @@ void explode()
 	return ;
 }
 
-static void uartReceiverun()
-{
-
-}

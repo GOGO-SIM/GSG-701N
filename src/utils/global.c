@@ -39,6 +39,9 @@ int gRecvMissCount = 0;
  */
 
 XUartPs gUartPs;
+XUartPs_Config *gUartConfig;
+XSysMon gSysMonInst;
+XSysMon_Config *gXadcConfig;
 
 uint32_t gFailCount[4];
 
@@ -86,12 +89,14 @@ tDVector3 gControlCmd;
  */
 uint32_t gGcuStatus;
 
-// ERR : voltage ���� �̸� ������ �ʿ�
-/*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/
-const double gVoltage1 = 3.0f;
-const double gVoltage2 = 4.0f;
-const double gVoltage3 = 5.0f;
+/*=====CBIT&PBIT Standard=====*/
 
-const double gCelcius = 30.0f;
+double gVoltageInt = 0.0f;
+double gVoltageBram = 0.0f;
+double gVoltageAux = 0.0f;
+double gCelcius = 0.0f;
+
+u32 gPassCbitFlag = TRUE;
+u32 gPassPbitFlag = TRUE;
 
 #endif

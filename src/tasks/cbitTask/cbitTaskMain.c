@@ -1,97 +1,207 @@
-#include <stdio.h>
-#include "FreeRTOS.h"
-#include "gsgTypes.h"
 #include "global.h"
+#include "gsgTypes.h"
 
-//static int sPassCbitFlag = TRUE; // 占쏙옙占� == TRUE, 占쏙옙占쏙옙 == FALSE
-//
-//int xADC_IsConversionDone();
-//
-//static void checkPower()
-//{
-//	/*
-//	 * 1. XADC 占쏙옙환 占쏙옙占�
-//	 * 2. 占쏙옙 占싻깍옙
-//	 * 3. 占쌈계값 占쏙옙
-//	 * 占십깍옙화 占쏙옙占쏙옙占쏙옙 占싱뱄옙 PBIT占쏙옙占쏙옙 占쏙옙占쏙옙占싹울옙占쏙옙占쏙옙占쏙옙 占쏙옙 占쏙옙占쏙옙 占쏙옙占쏙옙
-//	 */
-//	/*****************************[占쌈쏙옙 占쏙옙占쏙옙]*****************************/
-//	//1. XADC 占쏙옙환 占쏙옙占�
-//	while (!xADC_IsConversionDone());
-//
-//	//2. 占쏙옙 占싻깍옙
-//	int rawValue = xADC_GetData();
-//    double measuredVoltage = xADC_ConvertToVoltage(rawValue);
-//
-//	//3.占쌈계값 占쏙옙
-//	if (measuredVoltage < gVoltage1)
-//	{
-//		sPassCbitFlag == FALSE;
-//	}
-//}
-//
-//int checkAllRegister()
-//{
-//	return TRUE;
-//}
-//
-//static void checkRegister()
-//{
-//	/*
-//	 * 1. 占쏙옙渶뱄옙占쏙옙占쏙옙占� 占싯삼옙
-//	 */
-//	/*****************************[占쌈쏙옙 占쏙옙占쏙옙]*****************************/
-//
-//	// 1. 占쏙옙渶뱄옙占쏙옙占쏙옙占� 占싯삼옙
-//	if (checkAllRegister() == TRUE)
-//	{
-//		// 占쏙옙占쏙옙占쏙옙占싶곤옙 占싱삼옙占쌀띰옙 set 占실댐옙占쏙옙, 占쏙옙占쏙옙占싹띰옙 set 占실댐옙占쏙옙 占쏙옙占쏙옙 占실댐옙 占쌀곤옙
-//		sPassCbitFlag = FALSE;
-//	}
-//}
+// Ethernet 체크시 PHY 주소
 
-static void run(void)
+#define PHY_ADDR   0x0
+#define PHY_BASIC_STATUS    0x1
+
+// Ethernet 체크 위해 존재하는 명령
+
+#define MDIO_CMD_START (1 << 31)
+#define MDIO_CMD_READ (1 << 30)
+#define MDIO_PHY_0 ((PHY_ADDR & 0x1F) << 23)
+#define MDIO_PHY_BASIC_STATUS ((PHY_BASIC_STATUS & 0x1F) << 18)
+
+// OCM 메모리 체크 주소
+
+#define OCM_PARITY_CTRL_ADDR   0xF800C000U //OCM 컨트롤 용 주소
+#define OCM_IRQ_STS_ADDR       0xF800C008U //OCM 인터럽트 상태 주소
+
+// OCM 메모리 체크 발생 여부 판단
+
+#define OCM_SINGLE_ERR   (1 << 0) // OCM 인터럽트 상태 0번자리가 1이면 Single Bit Error
+#define OCM_MULTI_ERR    (1 << 1) // OCM 인터럽트 상태 1번자리가 1이면 Multiple Bit Error
+
+// ADC 변환 Raw 값
+
+static u16 sRawVccInt;
+static u16 sRawVccAux;
+static u16 sRawVccRam;
+static u16 sRawTemperture;
+
+// 레지스터를 통한 상태점검 변수
+
+static u32 sOcmStatus; //ocm = on chip memory
+static u32 sUartStatus;
+static u32 sEthernetStatus;
+static u32 sEthStatReadCmd;
+
+void debug(int err)
 {
+    printf("VCCINT: %.3lf V | VCCAUX: %.3lf V | VCCBRAM: %.3lf V | TEMP: %.3lf'C | ErrCNT: %d\r\n",
+            gVoltageInt,gVoltageAux,gVoltageBram ,gCelcius,err);
+}
 
+static u16 readEthStatus()
+{
+	sEthStatReadCmd = MDIO_CMD_START |  // MDIO 명령 시작
+		    		  	  	  MDIO_CMD_READ | // MDIO 읽어오기 명령
+							  MDIO_PHY_0 | // 읽어올 위치
+							  MDIO_PHY_BASIC_STATUS; // 읽어올 정보
+
+    Xil_Out32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET, sEthStatReadCmd);
+
+    while ( (Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_NWSR_OFFSET ) & XEMACPS_NWSR_MDIOIDLE_MASK) == 0);
+
+	return Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET) & 0xFFFF;
+}
+
+static void checkPower()
+{
+   // 각 측정 데이터 Raw 값으로 받아오기
+
+   sRawVccInt = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VCCINT);
+   sRawVccAux = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VCCAUX);
+   sRawVccRam = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VBRAM);
+   sRawTemperture = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_TEMP);
+
+   // Raw 데이터를 실제 전압,온도로 변환
+
+   gVoltageInt = XSysMon_RawToVoltage(sRawVccInt);
+   gVoltageBram = XSysMon_RawToVoltage(sRawVccRam);
+   gVoltageAux = XSysMon_RawToVoltage(sRawVccAux);
+   gCelcius = XSysMon_RawToTemperature(sRawTemperture);
+
+   // 비정상 전압 혹은 온도 감지시 gPassCbitFlag False로 전환
+
+   if ( gVoltageInt < 0.95 || gVoltageInt > 1.05 )
+   {
+      gPassCbitFlag = FALSE;
+   }
+   if ( gVoltageBram < 0.95 || gVoltageBram > 1.05 )
+   {
+      gPassCbitFlag = FALSE;
+   }
+   if ( gVoltageAux < 1.7 || gVoltageAux > 1.9 )
+   {
+      gPassCbitFlag = FALSE;
+   }
+   if ( gCelcius > 95 )
+   {
+      gPassCbitFlag = FALSE;
+   }
+}
+
+static void checkUart()
+{
+   sUartStatus = XUartPs_ReadReg(gUartConfig->BaseAddress,XUARTPS_ISR_OFFSET);
+
+   if (sUartStatus & XUARTPS_IXR_PARITY)
+   {
+	   gPassCbitFlag = FALSE; // Uart 패리티 에러 Set
+   }
+   if (sUartStatus & XUARTPS_IXR_FRAMING)
+   {
+	   gPassCbitFlag = FALSE; // Uart 프레이밍 에러 Set
+   }
+   if (sUartStatus & XUARTPS_IXR_OVER)
+   {
+	   gPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
+   }
+   //디버깅용------------
+   if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
+   {
+	   printf("Uart Passed | ");
+   }
+   //디버깅용------------
+   XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
+}
+
+static void checkMemory()
+{
+   sOcmStatus = Xil_In32(OCM_IRQ_STS_ADDR); // OCM 인터럽트 정보를 받아온다.
+
+   if (sOcmStatus & OCM_SINGLE_ERR)
+   {
+	   gPassCbitFlag = FALSE;
+   }
+   if (sOcmStatus & OCM_MULTI_ERR)
+   {
+	   gPassCbitFlag = FALSE;
+   }
+   //디버깅용------------
+   if (!(sOcmStatus & (OCM_SINGLE_ERR|OCM_MULTI_ERR)))
+   {
+  	   printf("Memory Passed | ");
+   }
+   //디버깅용------------
+   Xil_Out32(OCM_IRQ_STS_ADDR, sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR)); //Error Reset
+}
+
+static void checkEthernet()
+{
+   sEthernetStatus = readEthStatus();
+
+   if ((sEthernetStatus & 0x4) == FALSE) // 이더넷 연결 FALSE
+   {
+	   printf("Ethernet Failed | ");
+	   gPassCbitFlag = FALSE;
+   }
+   //디버깅용------------
+   else
+   {
+	   printf("Ethernet Passed | "); // 디버깅용
+    }
+   //디버깅용------------
+}
+
+static void checkRegister()
+{
+   checkUart();
+   checkEthernet();
+   checkMemory();
+}
+
+static void runCbit(void)
+{
+   static int sErrorCount = 0;
+   while(1)
+   {
+      if(sErrorCount >= 5)
+      {
+    	  xil_printf("explode();\n");
+    	  vTaskSuspendAll(); //폭발해서 모든 태스크 정지
+         //explode(); 5번 연속 에러시 자폭
+      }
+      checkPower();
+      if ( gPassCbitFlag == TRUE )
+      {
+         checkRegister();
+      }
+      if ( gPassCbitFlag == FALSE )
+      {
+         sErrorCount += 1;
+      }
+      else if ( gPassCbitFlag == TRUE )
+      {
+         sErrorCount = 0;
+      }
+      gPassCbitFlag = TRUE;
+      //디버깅용------------
+      debug(sErrorCount);
+      vTaskDelay(20);
+      //디버깅용------------
+   }
 }
 
 void cbitTaskMain( void *pvParameters )
 {
-	/*
-	 * 1. 占쏙옙占쏙옙 占싯삼옙
-	 * 2. 占쏙옙占쏙옙占쏙옙占쏙옙 占싯삼옙
-	 * 3. 占시뤄옙占쏙옙 占싯삼옙 占쏙옙 占쏙옙占쏙옙
-	 */
-	/*****************************[占쌈쏙옙 占쏙옙占쏙옙]*****************************/
     for(;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-		run();
+		runCbit();
     }
-//	while(1)
-//	{
-//		// 1. 占쏙옙占쏙옙 占싯삼옙
-//		checkPower();
-//		if ( sPassCbitFlag == TRUE )
-//		{
-//		// 2. 占쏙옙占쏙옙占쏙옙占쏙옙 占싯삼옙
-//			checkRegister();
-//		}
-//		// 3. 占시뤄옙占쏙옙 占싯삼옙 占쏙옙 占쏙옙占쏙옙
-//		if ( sPassCbitFlag == FALSE )
-//		{
-//			//占쏙옙占쏙옙占싼댐옙.
-//		}
-//		vTaskResume(xTelemetryTaskHandle);
-//		vTaskSuspend(xCbitTaskHandle);
-//	}
-
-}
-
-
-int xADC_IsConversionDone()
-{
-	return 1;
 }
