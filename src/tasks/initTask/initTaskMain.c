@@ -1,6 +1,5 @@
 #include "global.h"
 
-
 #include "FreeRTOS.h"
 #include "lwip/tcpip.h"
 #include "lwip/init.h"
@@ -11,13 +10,31 @@
 #include "lwip/ip_addr.h"
 #include "netif/xemacpsif.h"
 #include "platform_config.h"
-
+#include "xemacps_hw.h"
 
 #define INIT_FAIL 4
 #define LWIP_NETCONN 1
 
+// OCM 메모리 체크 주소
+
+#define OCM_PARITY_CTRL_ADDR   0xF800C000U //OCM 컨트롤 용 주소
+#define OCM_IRQ_STS_ADDR       0xF800C008U //OCM 인터럽트 상태 주소
+
+// OCM 컨트롤 주소에  write해 설정해 줄 옵션들
+
+#define OCM_PARITY_EN   (0 << 0) // 패리티 체크 Enable -> Parity Check Disable을 0으로 만들어 해제하기
+#define OCM_PARITY_EN_IRQ_SINGLE  (1 << 2) // 싱글 비트 에러 인터럽트 Enable
+#define OCM_PARITY_EN_IRQ_MULTI   (1 << 3) // 멀티 비트 에러 인터럽트 Enable
+
+XUartPs Uart_Ps;
+
 XSysMon sysMonInst;
-XSysMon_Config *configPtr;
+XSysMon_Config *gXadcConfig;
+
+// UART 설정 정보 구조체 포인터
+
+XUartPs_Config *gUartConfig;
+
 struct netbuf *recvBuf;
 struct netif gsgNetif;
 struct netconn *udpConn;
@@ -25,17 +42,18 @@ struct netconn *udpConn;
 int initUartPs()
 {
     // UART 설정 정보 구조체 포인터
-    XUartPs_Config *Config;
+
     int Status;
 
     // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
     // BaseAddress, BaudRate 등 하드웨어 정보 포함
-    Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
-    if (Config == NULL)
+    gUartConfig = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
+    if (gUartConfig == NULL)
     {
     	xil_printf("Config is NULL\n");
     	return XST_FAILURE;
     }
+
 
     Status = XUartPs_CfgInitialize(&gUartPs, Config, Config->BaseAddress);
     if (Status != XST_SUCCESS)
@@ -49,11 +67,21 @@ int initUartPs()
     return XST_SUCCESS;
 }
 
+
+
 void initXsysMon()
 {
-    configPtr = XSysMon_LookupConfig(XPAR_SYSMON_0_DEVICE_ID);
-    XSysMon_CfgInitialize(&sysMonInst, configPtr, configPtr->BaseAddress);
+	gXadcConfig = XSysMon_LookupConfig(XPAR_SYSMON_0_DEVICE_ID);
+    XSysMon_CfgInitialize(&sysMonInst, gXadcConfig, gXadcConfig->BaseAddress);
     XSysMon_SetSequencerMode(&sysMonInst, XSM_SEQ_MODE_CONTINPASS);
+}
+
+void initMemoryCheck(){
+
+	u32 OcmControl = 0x00;
+	OcmControl = OCM_PARITY_EN | OCM_PARITY_EN_IRQ_SINGLE | OCM_PARITY_EN_IRQ_MULTI;
+	Xil_Out32(OCM_PARITY_CTRL_ADDR,OcmControl);
+	Xil_Out32(OCM_IRQ_STS_ADDR,0x7); // 모든 인터럽트 비트에 1을 써줌으로써 초기화 0x7 = 111이다.
 }
 
 // call back
