@@ -2,17 +2,23 @@
 #include <string.h>
 #include "global.h"
 #include "gsgTypes.h"
+#include "crc.h"
 #include "xparameters.h"
+/* TODO : 테스트 데이터 예시 크기이므로 추후 리팩토링 필요 #56
+ * RECEIVE_SIZE 재정의
+ * exampleMsg -> recvUartMsg, 전역변수화
+ * */
+#define DATA_RECEIVE_SIZE 13
+uint8_t rxBuffer[DATA_RECEIVE_SIZE];
+tGsmpMsg exampleMsg;
 
-extern int gUartFailCount;
-
-uint8_t rxBuffer[13];
+// TODO : dev merge 후 삭제 필요
+int gRecvFlag;
+//extern int gRecvFlag;
 
 int recvUartBytes(uint8_t* buffer, int len);
 static void runUartReceive();
 void explode();
-
-static int isSuccess = FALSE;
 
 void uartReceiveTaskMain() 
 {
@@ -36,50 +42,75 @@ int recvUartBytes(uint8_t* buffer, int len)
 	return TRUE;
 }
 
-static void runUartReceive()
+// 수신받은 데이터를 파싱하여 저장한다.
+void storeParsedUartPacket(const uint8_t* buffer, tGsmpMsg* msg)
 {
-	int received = 0;
-	while(received < 13)
-	{
-		received += XUartPs_Recv(&gUartPs, &rxBuffer[received], 13 - received);
-	}
+	// header copy
+	memcpy(&msg->header, buffer, sizeof(tGsmpMessageHeader));
 
-	uint16_t calculatedCrc = calcCrc(rxBuffer, 11);
-	uint16_t receivedCrc = rxBuffer[11] | (rxBuffer[12] << 8);
-
-	if(calculatedCrc != receivedCrc)
+	// payload copy
+	if (msg->header.msgLen != sizeof(msg->payload)) return;
+	msg->payload = pvPortMalloc(msg->header.msgLen);  // 또는 malloc()
+	if (msg->payload == NULL)
 	{
-		xil_printf("CRC Error! calculated CRC : %x received CRC : %x\r\n", calculatedCrc, receivedCrc);
+		xil_printf("Failed to allocate memory for payload\r\n");
 		return;
 	}
 
-	xil_printf("\r\ntotal size is %d\r\n", sizeof(rxBuffer));
-	xil_printf("Received CRC is %x && Calculated CRC is %x\r\n", receivedCrc, calculatedCrc);
-	tGsmpMessageHeader header;
-	memcpy(&header, rxBuffer, sizeof(header));
+	memcpy(msg->payload, buffer + sizeof(tGsmpMessageHeader), msg->header.msgLen);
 
-	uint8_t* ptr = rxBuffer + sizeof(tGsmpMessageHeader);  // 포인터 위치 조정
+	// copy CRC
+	msg->CRC = (buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen] << 8) | buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen + 1];
 
-	int32_t responseMsg = (int32_t)(ptr[0]) |
-	                      (int32_t)(ptr[1] << 8) |
-	                      (int32_t)(ptr[2] << 16) |
-	                      (int32_t)(ptr[3] << 24);
-	isSuccess = TRUE;
+}
 
-	//xil_printf("size = %d\r\n", sizeof(payload));
-	xil_printf(" startFlag: %x\r\n msgId: %x\r\n destId: %x\r\n srcId: %x\r\n msgLen: %d\r\n", header.startflag, header.msgId, header.destId, header.srcId, header.msgLen);
-	for(int i = 0; i < sizeof(rxBuffer); ++i)
+
+static void runUartReceive()
+{
+	gRecvFlag = TRUE;
+	// 1. 수신받은 데이터 패킷의 크기가 맞지 않다면 종료한다.
+	// 2. CRC 검사를 수행한다.
+	if(!recvUartBytes(rxBuffer, DATA_RECEIVE_SIZE) || !checkCrc(rxBuffer))
 	{
-		xil_printf("%02x ", rxBuffer[i]);
+		//xil_printf("calced CRC : 0X%x\r\n", calcCrc(rxBuffer, DATA_RECEIVE_SIZE-2));
+		// 2.1. CRC 실패 시, gUartMissCount를 증가햔다. 10 이상이면 폭파한다.
+		if(++gFailCount[UART_FAIL] >= 10)
+		{
+			explode();
+		}
+		return;
 	}
-	xil_printf("\r\n");
 
-	xil_printf("responseMsg: %d\r\n", responseMsg);
-	xil_printf("\r\n*----------------*\r\n");
+
+	// 3. 기존의 데이터에 payload가 지정되어있다면, 풀어준다.
+	if(exampleMsg.payload)
+	{
+		vPortFree(exampleMsg.payload);
+		exampleMsg.payload = NULL;
+	}
+	// 4. 데이터 파싱을 진행한다.
+	storeParsedUartPacket(rxBuffer, &exampleMsg);
+	if(exampleMsg.header.msgStat == OK)
+	{
+		gFailCount[UART_FAIL] = 0;
+	}
+	else
+	{
+		if(++gFailCount[UART_FAIL] >= 10)
+		{
+			explode();
+		}
+	}
+
+	if (exampleMsg.payload && exampleMsg.header.msgId == ACB_ECHO_RECV_MSG_ID) {
+		// TODO : 테스트 데이터 예시 크기이므로 추후 리팩토링 필요 #56
+		int32_t response = *((int32_t*)exampleMsg.payload);
+		xil_printf("responseMsg: %d\r\n", response);
+	}
 }
 
 void explode()
 {
-	printf("explode\n");
+	printf("explode\r\n");
 	return ;
 }
