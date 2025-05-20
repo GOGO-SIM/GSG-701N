@@ -3,12 +3,12 @@
 #include "global.h"
 #include "crc.h"
 
-// CRC¼³Á¤ ÇÔ¼ö
-// º¯È¯µÈ CRC °ª return
+// CRCï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+// ï¿½ï¿½È¯ï¿½ï¿½ CRC ï¿½ï¿½ return
 uint16_t calcCrc(const void* data, uint16_t length)
 {
 	uint16_t crc = defaultVal;
-	// void* -> uint8_t* ·Î º¯È¯
+	// void* -> uint8_t* ï¿½ï¿½ ï¿½ï¿½È¯
 	const uint8_t* bytes = (const uint8_t*) data;
 
 	for(uint16_t i = 0; i < length; ++i)
@@ -31,26 +31,26 @@ uint16_t calcCrc(const void* data, uint16_t length)
 
 }
 
-// CRC °Ë»ç ÇÔ¼ö
-// CRC °Ë»ç ¼º°ø ÈÄ ¼º°ø|½ÇÆÐ ¹ÝÈ¯
+// CRC ï¿½Ë»ï¿½ ï¿½Ô¼ï¿½
+// CRC ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½|ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 int checkCrc(void* recvData)
 {
     if (!recvData) return FALSE;
 
-    // 1. Çì´õ ÃßÃâ (¸Þ¸ð¸® ¾ÈÁ¤¼ºÀ» À§ÇØ º¹»ç)
+    // 1. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     tGsmpMessageHeader header;
     memcpy(&header, recvData, sizeof(tGsmpMessageHeader));
 
-    // 2. °Ë»ç ´ë»ó ±æÀÌ °è»ê (CRC Á¦¿Ü)
+    // 2. ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (CRC ï¿½ï¿½ï¿½ï¿½)
     uint16_t dataLen = sizeof(tGsmpMessageHeader) + header.msgLen;
 
-    // 3. CRC °è»ê (CRC Á¦¿Ü ¹üÀ§¸¸ °è»ê)
+    // 3. CRC ï¿½ï¿½ï¿½ (CRC ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
     uint16_t crc = calcCrc(recvData, dataLen);
 
-    // 4. ¼ö½ÅµÈ CRC °ª ÃßÃâ (MSB ¸ÕÀú)
+    // 4. ï¿½ï¿½ï¿½Åµï¿½ CRC ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (MSB ï¿½ï¿½ï¿½ï¿½)
     uint8_t* bytes = (uint8_t*)recvData;
-    uint16_t recvCrc = (bytes[dataLen] << 8) | bytes[dataLen + 1];
+    uint16_t recvCrc = bytes[dataLen] | (bytes[dataLen + 1] << 8);
 
-    // 5. ºñ±³
+    // 5. ï¿½ï¿½
     return (crc == recvCrc) ? TRUE : FALSE;
 }
