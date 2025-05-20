@@ -26,15 +26,6 @@
 #define OCM_PARITY_EN_IRQ_SINGLE  (1 << 2) // 싱글 비트 에러 인터럽트 Enable
 #define OCM_PARITY_EN_IRQ_MULTI   (1 << 3) // 멀티 비트 에러 인터럽트 Enable
 
-XUartPs Uart_Ps;
-
-XSysMon sysMonInst;
-XSysMon_Config *gXadcConfig;
-
-// UART 설정 정보 구조체 포인터
-
-XUartPs_Config *gUartConfig;
-
 struct netbuf *recvBuf;
 struct netif gsgNetif;
 struct netconn *udpConn;
@@ -55,7 +46,7 @@ int initUartPs()
     }
 
 
-    Status = XUartPs_CfgInitialize(&gUartPs, Config, Config->BaseAddress);
+    Status = XUartPs_CfgInitialize(&gUartPs, gUartConfig, gUartConfig->BaseAddress);
     if (Status != XST_SUCCESS)
     {
     	xil_printf("State is FAIL\n");
@@ -72,8 +63,8 @@ int initUartPs()
 void initXsysMon()
 {
 	gXadcConfig = XSysMon_LookupConfig(XPAR_SYSMON_0_DEVICE_ID);
-    XSysMon_CfgInitialize(&sysMonInst, gXadcConfig, gXadcConfig->BaseAddress);
-    XSysMon_SetSequencerMode(&sysMonInst, XSM_SEQ_MODE_CONTINPASS);
+    XSysMon_CfgInitialize(&gSysMonInst, gXadcConfig, gXadcConfig->BaseAddress);
+    XSysMon_SetSequencerMode(&gSysMonInst, XSM_SEQ_MODE_CONTINPASS);
 }
 
 void initMemoryCheck(){
