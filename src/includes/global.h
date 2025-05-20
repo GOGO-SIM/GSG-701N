@@ -10,8 +10,8 @@
 #include "xuartps.h"
 #include "xsysmon.h"
 #include "xparameters.h"
-#include "gsgTypes.h"
 #include "xil_io.h"
+#include "gsgTypes.h"
 #include "xemacps_hw.h"
 
 /* ��ũ�� ���� */
@@ -120,5 +120,7 @@ extern double gVoltageAux;
 
 extern double gCelcius;
 
+extern u32 gPassCbitFlag;
+extern u32 gPassPbitFlag;
 
 #endif

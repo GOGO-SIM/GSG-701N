@@ -87,4 +87,7 @@ double gVoltageBram = 0.0f;
 double gVoltageAux = 0.0f;
 double gCelcius = 0.0f;
 
+u32 gPassCbitFlag = TRUE;
+u32 gPassPbitFlag = TRUE;
+
 #endif

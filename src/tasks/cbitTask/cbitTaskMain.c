@@ -1,4 +1,5 @@
 #include "global.h"
+#include "gsgTypes.h"
 
 // Ethernet 체크시 PHY 주소
 
@@ -36,10 +37,6 @@ static u32 sUartStatus;
 static u32 sEthernetStatus;
 static u32 sEthStatReadCmd;
 
-// Cbit 성공 / 실패여부 나타내는 변수 (통과 == TRUE, 실패 == FALSE)
-
-static u32 sPassCbitFlag = TRUE;
-
 void debug(int err)
 {
     printf("VCCINT: %.3lf V | VCCAUX: %.3lf V | VCCBRAM: %.3lf V | TEMP: %.3lf'C | ErrCNT: %d\r\n",
@@ -62,25 +59,23 @@ static void checkPower()
    gVoltageAux = XSysMon_RawToVoltage(sRawVccAux);
    gCelcius = XSysMon_RawToTemperature(sRawTemperture);
 
-   // debug();
-
-   // 비정상 전압 혹은 온도 감지시 sPassCbitFlag False로 전환
+   // 비정상 전압 혹은 온도 감지시 gPassCbitFlag False로 전환
 
    if ( gVoltageInt < 0.95 || gVoltageInt > 1.05 )
    {
-      sPassCbitFlag = FALSE;
+      gPassCbitFlag = FALSE;
    }
    if ( gVoltageBram < 0.95 || gVoltageBram > 1.05 )
    {
-      sPassCbitFlag = FALSE;
+      gPassCbitFlag = FALSE;
    }
    if ( gVoltageAux < 1.7 || gVoltageAux > 1.9 )
    {
-      sPassCbitFlag = FALSE;
+      gPassCbitFlag = FALSE;
    }
    if ( gCelcius > 95 )
    {
-      sPassCbitFlag = FALSE;
+      gPassCbitFlag = FALSE;
    }
 }
 
@@ -90,15 +85,15 @@ static void checkUart()
 
    if (sUartStatus & XUARTPS_IXR_PARITY)
    {
-	   sPassCbitFlag = FALSE; // Uart 패리티 에러 Set
+	   gPassCbitFlag = FALSE; // Uart 패리티 에러 Set
    }
    if (sUartStatus & XUARTPS_IXR_FRAMING)
    {
-	   sPassCbitFlag = FALSE; // Uart 프레이밍 에러 Set
+	   gPassCbitFlag = FALSE; // Uart 프레이밍 에러 Set
    }
    if (sUartStatus & XUARTPS_IXR_OVER)
    {
-	   sPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
+	   gPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
    }
 
    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
@@ -111,7 +106,7 @@ static void checkMemory()
     if (sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR))
     {
     	printf("Memory Failed  | ");
-    	sPassCbitFlag = FALSE;
+    	gPassCbitFlag = FALSE;
     	Xil_Out32(OCM_IRQ_STS_ADDR,sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR) );
     }
     else
@@ -136,7 +131,7 @@ static void checkEthernet()
 	    if ( (sEthernetStatus & 0x4) == FALSE ) // 이더넷 연결 FALSE
 	     {
 	    	 printf("Ethernet Failed | ");
-	         sPassCbitFlag = FALSE;
+	         gPassCbitFlag = FALSE;
 	     }
 	    else
 	    {
@@ -162,19 +157,19 @@ static void runCbit(void)
          //explode(); 5번 연속 에러시 자폭
       }
       checkPower();
-      if ( sPassCbitFlag == TRUE )
+      if ( gPassCbitFlag == TRUE )
       {
          checkRegister();
       }
-      if ( sPassCbitFlag == FALSE )
+      if ( gPassCbitFlag == FALSE )
       {
          sErrorCount += 1;
       }
-      else if ( sPassCbitFlag == TRUE )
+      else if ( gPassCbitFlag == TRUE )
       {
          sErrorCount = 0;
       }
-      sPassCbitFlag = TRUE;
+      gPassCbitFlag = TRUE;
       //디버깅용------------
       debug(sErrorCount);
       //디버깅용------------
