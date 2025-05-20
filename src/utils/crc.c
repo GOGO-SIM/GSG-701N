@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "gsgTypes.h"
 #include "global.h"
 #include "crc.h"
 

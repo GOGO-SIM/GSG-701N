@@ -3,13 +3,16 @@
 #define _GLOBAL_H_
 
 #include <stdint.h>
+#include <stdio.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "xil_printf.h"
 #include "xuartps.h"
 #include "xsysmon.h"
 #include "xparameters.h"
+#include "xil_io.h"
 #include "gsgTypes.h"
+#include "xemacps_hw.h"
 
 /* ��ũ�� ���� */
 #ifndef TRUE
@@ -32,6 +35,7 @@
 #endif
 
 /* Ȱ���� ���� ���� extern */
+extern int gRecvFlag;
 extern uint32_t gFailCount[4];
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
@@ -42,8 +46,9 @@ extern uint32_t gGcuStatus;
 
 /* from init */
 extern XUartPs gUartPs;
-extern XSysMon sysMonInst;
-extern XSysMon_Config *configPtr;
+extern XUartPs_Config *gUartConfig;
+extern XSysMon gSysMonInst;
+extern XSysMon_Config *gXadcConfig;
 
 /**
  * [task handlers]
@@ -110,11 +115,13 @@ enum eStatus
 
 
 /*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/
-extern const double gVoltage1;
-extern const double gVoltage2;
-extern const double gVoltage3;
+extern double gVoltageInt;
+extern double gVoltageBram;
+extern double gVoltageAux;
 
-extern const double gCelcius;
+extern double gCelcius;
 
+extern u32 gPassCbitFlag;
+extern u32 gPassPbitFlag;
 
 #endif

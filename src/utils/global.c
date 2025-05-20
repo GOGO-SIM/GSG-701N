@@ -27,6 +27,9 @@ TaskHandle_t xMainTaskHandle,
 
 const uint8_t START_FLAG = 0x7E;
 
+int gRecvFlag = TRUE;
+int gRecvMissCount = 0;
+
 /**
  * gFailCount[4]
  * [0] - udp
@@ -34,13 +37,19 @@ const uint8_t START_FLAG = 0x7E;
  * [2] - imuData
  * [3] - SeekerData
  */
+
+XUartPs gUartPs;
+XUartPs_Config *gUartConfig;
+XSysMon gSysMonInst;
+XSysMon_Config *gXadcConfig;
+
 uint32_t gFailCount[4];
 
 
 /**
  * gImuData
- * °¡¼Óµµ double vector3(x, y, z)
- * °¢¼Óµµ double vector3(x, y, z)
+ * ï¿½ï¿½ï¿½Óµï¿½ double vector3(x, y, z)
+ * ï¿½ï¿½ï¿½Óµï¿½ double vector3(x, y, z)
  */
 tImuData gImuData;
 
@@ -54,20 +63,20 @@ tSeekerData gSeekerData;
 
 /**
  * gAccCommand
- * ¸ñÇ¥ °¡¼Óµµ double vector3 (x, y, z)
+ * ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½Óµï¿½ double vector3 (x, y, z)
  */
 tDVector3 gAccCmd;
 
 /**
  * gAttitude
- * ÇöÀç ÀÚ¼¼ double vector4 (w, x, y, z)
+ * ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¼ï¿½ double vector4 (w, x, y, z)
  */
 tDVector4 gAttitude;
 
 /**
  * gControlCommand
- * ÇöÀç ÀÚ¼¼ double vector3 ( x, y, z)
- * ¸ñÇ¥ °¢¼Óµµ -> Guidance  Task returnÇÏ´Â ¾Ö
+ * ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¼ï¿½ double vector3 (x, y, z)
+ * ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½Óµï¿½ -> Guidance  Task returnï¿½Ï´ï¿½ ï¿½ï¿½
  */
 tDVector3 gControlCmd;
 
@@ -80,12 +89,14 @@ tDVector3 gControlCmd;
  */
 uint32_t gGcuStatus;
 
-// ERR : voltage º¯¼ö ÀÌ¸§ ÀçÁ¤ÀÇ ÇÊ¿ä
-/*=====CBIT&PBIT Àü¾Ð ¹× ¿Âµµ  Ã¼Å©  º¯¼ö=====*/
-const double gVoltage1 = 3.0f;
-const double gVoltage2 = 4.0f;
-const double gVoltage3 = 5.0f;
+/*=====CBIT&PBIT Standard=====*/
 
-const double gCelcius = 30.0f;
+double gVoltageInt = 0.0f;
+double gVoltageBram = 0.0f;
+double gVoltageAux = 0.0f;
+double gCelcius = 0.0f;
+
+u32 gPassCbitFlag = TRUE;
+u32 gPassPbitFlag = TRUE;
 
 #endif

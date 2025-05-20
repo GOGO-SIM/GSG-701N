@@ -1,3 +1,7 @@
 /Debug/
 /Release/
-_ide/bitstream/xADC_Design_wrapper.bit
+.project
+GSG-701N.prj
+.settings
+_ide/
+
