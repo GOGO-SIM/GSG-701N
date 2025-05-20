@@ -27,6 +27,7 @@
 #define OCM_PARITY_EN_IRQ_MULTI   (1 << 3) // 멀티 비트 에러 인터럽트 Enable
 
 XUartPs Uart_Ps;
+
 XSysMon sysMonInst;
 XSysMon_Config *gXadcConfig;
 
@@ -53,7 +54,8 @@ int initUartPs()
     	return XST_FAILURE;
     }
 
-    Status = XUartPs_CfgInitialize(&Uart_Ps, gUartConfig, gUartConfig->BaseAddress);
+
+    Status = XUartPs_CfgInitialize(&gUartPs, Config, Config->BaseAddress);
     if (Status != XST_SUCCESS)
     {
     	xil_printf("State is FAIL\n");
@@ -61,7 +63,7 @@ int initUartPs()
    	}
 
     // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
-    XUartPs_SetBaudRate(&Uart_Ps, UART_BAUD);
+    XUartPs_SetBaudRate(&gUartPs, UART_BAUD);
     return XST_SUCCESS;
 }
 

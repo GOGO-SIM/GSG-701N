@@ -11,10 +11,7 @@ static int recvFlag;
 void explode();
 int checkCRC(tGsmpMessageHeader examp, uint16_t size);
 
-static void run()
-{
-    
-}
+
 
 void uartReceiveTaskMain() 
 {
@@ -83,4 +80,9 @@ void explode()
 {
 	printf("explode\n");
 	return ;
+}
+
+static void uartReceiverun()
+{
+
 }

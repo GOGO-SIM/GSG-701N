@@ -35,6 +35,7 @@
 #endif
 
 /* Ȱ���� ���� ���� extern */
+extern int gRecvFlag;
 extern uint32_t gFailCount[4];
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;

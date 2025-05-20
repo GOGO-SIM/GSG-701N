@@ -27,6 +27,9 @@ TaskHandle_t xMainTaskHandle,
 
 const uint8_t START_FLAG = 0x7E;
 
+int gRecvFlag = TRUE;
+int gRecvMissCount = 0;
+
 /**
  * gFailCount[4]
  * [0] - udp
@@ -34,6 +37,9 @@ const uint8_t START_FLAG = 0x7E;
  * [2] - imuData
  * [3] - SeekerData
  */
+
+XUartPs gUartPs;
+
 uint32_t gFailCount[4];
 
 
@@ -66,7 +72,7 @@ tDVector4 gAttitude;
 
 /**
  * gControlCommand
- * ���� �ڼ� double vector3 ( x, y, z)
+ * ���� �ڼ� double vector3 (x, y, z)
  * ��ǥ ���ӵ� -> Guidance  Task return�ϴ� ��
  */
 tDVector3 gControlCmd;
@@ -80,8 +86,8 @@ tDVector3 gControlCmd;
  */
 uint32_t gGcuStatus;
 
-// ERR : voltage ���� �̸� ������ �ʿ�
-/*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/
+/*=====CBIT&PBIT Standard=====*/
+
 double gVoltageInt = 0.0f;
 double gVoltageBram = 0.0f;
 double gVoltageAux = 0.0f;
