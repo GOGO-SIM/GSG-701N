@@ -39,8 +39,8 @@ uint32_t gFailCount[4];
 
 /**
  * gImuData
- * °¡¼Óµµ double vector3(x, y, z)
- * °¢¼Óµµ double vector3(x, y, z)
+ * ï¿½ï¿½ï¿½Óµï¿½ double vector3(x, y, z)
+ * ï¿½ï¿½ï¿½Óµï¿½ double vector3(x, y, z)
  */
 tImuData gImuData;
 
@@ -54,20 +54,20 @@ tSeekerData gSeekerData;
 
 /**
  * gAccCommand
- * ¸ñÇ¥ °¡¼Óµµ double vector3 (x, y, z)
+ * ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½Óµï¿½ double vector3 (x, y, z)
  */
 tDVector3 gAccCmd;
 
 /**
  * gAttitude
- * ÇöÀç ÀÚ¼¼ double vector4 (w, x, y, z)
+ * ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¼ï¿½ double vector4 (w, x, y, z)
  */
 tDVector4 gAttitude;
 
 /**
  * gControlCommand
- * ÇöÀç ÀÚ¼¼ double vector3 ( x, y, z)
- * ¸ñÇ¥ °¢¼Óµµ -> Guidance  Task returnÇÏ´Â ¾Ö
+ * ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¼ï¿½ double vector3 ( x, y, z)
+ * ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½Óµï¿½ -> Guidance  Task returnï¿½Ï´ï¿½ ï¿½ï¿½
  */
 tDVector3 gControlCmd;
 
@@ -80,12 +80,11 @@ tDVector3 gControlCmd;
  */
 uint32_t gGcuStatus;
 
-// ERR : voltage º¯¼ö ÀÌ¸§ ÀçÁ¤ÀÇ ÇÊ¿ä
-/*=====CBIT&PBIT Àü¾Ð ¹× ¿Âµµ  Ã¼Å©  º¯¼ö=====*/
-const double gVoltage1 = 3.0f;
-const double gVoltage2 = 4.0f;
-const double gVoltage3 = 5.0f;
-
-const double gCelcius = 30.0f;
+// ERR : voltage ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
+/*=====CBIT&PBIT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Âµï¿½  Ã¼Å©  ï¿½ï¿½ï¿½ï¿½=====*/
+double gVoltageInt = 0.0f;
+double gVoltageBram = 0.0f;
+double gVoltageAux = 0.0f;
+double gCelcius = 0.0f;
 
 #endif
