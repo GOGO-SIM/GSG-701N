@@ -65,6 +65,8 @@ void runUartReceive()
 		int32_t response = *((int32_t*)exampleMsg.payload);
 		xil_printf("responseMsg: %d\r\n", response);
 	}
+
+	//  Msg PAYLOAD 내용을 저장한다
 }
 
 void explode()
