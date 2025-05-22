@@ -14,7 +14,6 @@
 #define DATA_RECEIVE_SIZE 13
 extern uint8_t rxBuffer[DATA_RECEIVE_SIZE];
 extern tGsmpMsg exampleMsg;
-//extern int gRecvFlag;
 
 int recvUartBytes(uint8_t* buffer, int len);
 void runUartReceive();

@@ -26,6 +26,7 @@ void gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 	// payload copy
 
 	uint8_t* payloadStart = buffer + sizeof(tGsmpMessageHeader);
+  
 	switch(msg->header.msgId)
 	{
 	case IMU_MSG_ID:
