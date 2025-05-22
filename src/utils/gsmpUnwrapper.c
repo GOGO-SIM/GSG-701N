@@ -81,5 +81,5 @@ void gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 	}
 
 	// copy CRC
-	msg->CRC = (buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen] << 8) | buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen + 1];
+	//msg->CRC = (buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen] << 8) | buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen + 1];
 }
