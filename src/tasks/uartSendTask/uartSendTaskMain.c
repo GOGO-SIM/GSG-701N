@@ -41,7 +41,7 @@ void runUartSend()
 //	gControlCmd.z = 3.04;
 	// 헤더 설정
 	targetMsg.header.startflag = START_FLAG;
-	targetMsg.header.msgId = ACB_MSG_ID;
+	targetMsg.header.msgId = ACB_SEND_MSG_ID;
 	targetMsg.header.srcId = GCU_ID;
 	targetMsg.header.destId = ACB_ID;
 	targetMsg.header.msgStat = OK;

@@ -10,31 +10,47 @@ typedef union _uGsmpRecvPayload
 {
 	tImuPayload recvImuPayload;
 	tSeekerPayload recvSeekerPayload;
+	tAcbFeedbackPayload recvAcbFeedbackPayload;
 	tAcbPayload recvAcbPayload;
 	int32_t recvAcbEchoPayload;
 	tTelemetryData recvTelemetryPayload;
 } uGsmpRecvPayload;
 
-void* gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
+static uGsmpRecvPayload payloadBuffer;
+
+void gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 {
 	// header copy
 	memcpy(&msg->header, buffer, sizeof(tGsmpMessageHeader));
 
 	// payload copy
+
+	uint8_t* payloadStart = buffer + sizeof(tGsmpMessageHeader);
+
 	switch(msg->header.msgId)
 	{
 	case IMU_MSG_ID:
 	{
-		msg->payload = pvPortMalloc(sizeof(tDVector3));
+		memcpy(&payloadBuffer.recvImuPayload, payloadStart, sizeof(tImuPayload));
+		msg->payload = &payloadBuffer.recvImuPayload;
 		break;
 	}
 	case SEEKER_MSG_ID:
 	{
-		msg->payload = pvPortMalloc(sizeof(tDVector3));
+		memcpy(&payloadBuffer.recvSeekerPayload, payloadStart, sizeof(tSeekerPayload));
+		msg->payload = &payloadBuffer.recvSeekerPayload;
 		break;
 	}
-	case ACB_MSG_ID:
+	case ACB_RECV_MSG_ID:
 	{
+		memcpy(&payloadBuffer.recvAcbEchoPayload, payloadStart, sizeof(int32_t));
+		msg->payload = &payloadBuffer.recvAcbEchoPayload;
+		break;
+	}
+	case ACB_SEND_MSG_ID:
+	{
+		// THIS WILL NEVER BE ENTERED
+		xil_printf("ERROR : WRONG HEADER - MSG ID");
 		break;
 	}
 	case ACB_ECHO_SEND_MSG_ID:
@@ -45,6 +61,8 @@ void* gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 	}
 	case ACB_ECHO_RECV_MSG_ID:
 	{
+		memcpy(&payloadBuffer.recvAcbEchoPayload, payloadStart, sizeof(int32_t));
+		msg->payload = &payloadBuffer.recvAcbEchoPayload;
 		break;
 	}
 	case TELEMETRY_MSG_ID:
@@ -61,8 +79,6 @@ void* gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 		xil_printf("Failed to allocate memory for payload\r\n");
 		return;
 	}
-
-	memcpy(msg->payload, buffer + sizeof(tGsmpMessageHeader), msg->header.msgLen);
 
 	// copy CRC
 	msg->CRC = (buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen] << 8) | buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen + 1];
