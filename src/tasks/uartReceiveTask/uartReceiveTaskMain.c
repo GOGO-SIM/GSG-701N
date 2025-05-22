@@ -11,7 +11,10 @@ static int recvFlag;
 void explode();
 int checkCRC(tGsmpMessageHeader examp, uint16_t size);
 
+static void uartReceiverun()
+{
 
+}
 
 void uartReceiveTaskMain() 
 {
@@ -20,7 +23,7 @@ void uartReceiveTaskMain()
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-		//run();
+		uartReceiverun();
     }
 	/*
 	 * 1. recvFlag占쏙옙 true占쏙옙 占쏙옙占쏙옙占싼댐옙.
@@ -82,7 +85,3 @@ void explode()
 	return ;
 }
 
-static void uartReceiverun()
-{
-
-}
