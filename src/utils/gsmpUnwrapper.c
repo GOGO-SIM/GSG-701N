@@ -26,7 +26,7 @@ void gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 	// payload copy
 
 	uint8_t* payloadStart = buffer + sizeof(tGsmpMessageHeader);
-
+  
 	switch(msg->header.msgId)
 	{
 	case IMU_MSG_ID:
@@ -79,7 +79,6 @@ void gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg)
 		xil_printf("Failed to allocate memory for payload\r\n");
 		return;
 	}
-
 	// copy CRC
 	//msg->CRC = (buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen] << 8) | buffer[sizeof(tGsmpMessageHeader) + msg->header.msgLen + 1];
 }
