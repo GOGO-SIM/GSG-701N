@@ -9,6 +9,7 @@ const static int NAVIGATION_DEADLINE = 1000;
 const static int GUIDANCE_DEADLINE = 1000;
 const static int CONTOL_DEADLINE = 1000;
 const static int UART_SEND_DEADLINE = 1000;
+const static int UART_RECV_DEADLINE = 1000;
 const static int CBIT_DEADLINE = 1000;
 const static int TELEMETRY_DEADLINE = 1000;
 
@@ -43,11 +44,15 @@ void schedulingTaskMain(void *pvParameters)
     	xil_printf("WAKE - uart send\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xUartSendTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(UART_SEND_DEADLINE));
-		// 7. CBIT �½�ũ give && delay
+		// 7. UART get && delay
+    	xil_printf("WAKE - uart recv\r\n", pcTaskGetName(NULL));
+		xTaskNotifyGive(xUartReceiveTaskHandle);
+		vTaskDelayUntil(&last, pdMS_TO_TICKS(UART_RECV_DEADLINE));
+		// 8. CBIT �½�ũ give && delay
     	xil_printf("WAKE - cbit\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xCbitTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(CBIT_DEADLINE));
-		// 8. Telemetry �½�ũ give && delay
+		// 9. Telemetry �½�ũ give && delay
     	xil_printf("WAKE - tele\r\n", pcTaskGetName(NULL));
 		xTaskNotifyGive(xTelemetryTaskHandle);
 		vTaskDelayUntil(&last, pdMS_TO_TICKS(TELEMETRY_DEADLINE));
