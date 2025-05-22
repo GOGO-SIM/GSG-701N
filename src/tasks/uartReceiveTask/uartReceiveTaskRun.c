@@ -38,15 +38,12 @@ void runUartReceive()
 		return;
 	}
 
+	xil_printf("CRC : 0X%x\r\n", calcCrc(rxBuffer, DATA_RECEIVE_SIZE-2));
 
 	// 3. 기존의 데이터에 payload가 지정되어있다면, 풀어준다.
-	if(exampleMsg.payload)
-	{
-		vPortFree(exampleMsg.payload);
-		exampleMsg.payload = NULL;
-	}
 	// 4. 데이터 파싱을 진행한다.
 	//storeParsedUartPacket(rxBuffer, &exampleMsg);
+	//xil_printf("Parse Start\r\n");
 	gsmpUnWrapper(rxBuffer, &exampleMsg);
 	if(exampleMsg.header.msgStat == OK)
 	{
@@ -59,13 +56,11 @@ void runUartReceive()
 			explode();
 		}
 	}
-
 	if (exampleMsg.payload && exampleMsg.header.msgId == ACB_ECHO_RECV_MSG_ID) {
 		// TODO : 테스트 데이터 예시 크기이므로 추후 리팩토링 필요 #56
 		int32_t response = *((int32_t*)exampleMsg.payload);
 		xil_printf("responseMsg: %d\r\n", response);
 	}
-
 	//  Msg PAYLOAD 내용을 저장한다
 }
 

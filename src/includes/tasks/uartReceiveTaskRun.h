@@ -14,9 +14,6 @@
 #define DATA_RECEIVE_SIZE 13
 extern uint8_t rxBuffer[DATA_RECEIVE_SIZE];
 extern tGsmpMsg exampleMsg;
-
-// TODO : dev merge 후 삭제 필요
-extern int gRecvFlag;
 //extern int gRecvFlag;
 
 int recvUartBytes(uint8_t* buffer, int len);

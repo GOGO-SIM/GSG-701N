@@ -74,6 +74,15 @@ typedef struct _tACBPayload
 } tAcbPayload;
 #pragma pack(pop)
 
+// ACB Feedback Message
+#pragma pack(push, 1)
+typedef struct _tAcbFeedbackPayload
+{
+	// TODO : 피드백 제어 : TBD
+	int staus;
+} tAcbFeedbackPayload;
+#pragma pack(pop)
+
 // controlTask input
 #pragma pack(push, 1)
 typedef struct _tAccCmd
@@ -96,4 +105,5 @@ typedef struct _tTelemetryData
 
 } tTelemetryData;
 #pragma pack(pop)
+
 #endif
