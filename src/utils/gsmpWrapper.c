@@ -1,15 +1,15 @@
 /*
  * void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
- * GSMP(GoSim Message Protocol)ÀÇ Àü¼ÛÀ» Áö¿øÇÑ´Ù.
- * return : ByteStream ¹İÈ¯
+ * GSMP(GoSim Message Protocol)ì˜ ì „ì†¡ì„ ì§€ì›í•œë‹¤.
+ * return : ByteStream ë°˜í™˜
  *
  **/
 void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
 {
 /**
- * [µ¥ÀÌÅÍÀÇ Æ÷¸ËÀ» wrapÇÑ´Ù.]
- * ¼Û¼ö½ÅÇÏ´Â ¸ğµç ½Ã½ºÅÛÀº ¸®Æ² ¿£µğ¾È Çü½ÄÀ» »ç¿ëÇÑ´Ù°í °¡Á¤ÇÑ´Ù.
- * 1. ÀÎÀÚ°ªÀ» ¹ÙÅÁÀ¸·Î ¹ÙÀÌÆ® ½ºÆ®¸²À» »ı¼ºÇÑ´Ù.
- * 2. »ı¼ºÇÑ ¹ÙÀÌÆ®½ºÆ®¸²À» ¹İÈ¯ÇÑ´Ù.
+ * [ë°ì´í„°ì˜ í¬ë§·ì„ wrapí•œë‹¤.]
+ * ì†¡ìˆ˜ì‹ í•˜ëŠ” ëª¨ë“  ì‹œìŠ¤í…œì€ ë¦¬í‹€ ì—”ë””ì•ˆ í˜•ì‹ì„ ì‚¬ìš©í•œë‹¤ê³  ê°€ì •í•œë‹¤.
+ * 1. ì¸ìê°’ì„ ë°”íƒ•ìœ¼ë¡œ ë°”ì´íŠ¸ ìŠ¤íŠ¸ë¦¼ì„ ìƒì„±í•œë‹¤.
+ * 2. ìƒì„±í•œ ë°”ì´íŠ¸ìŠ¤íŠ¸ë¦¼ì„ ë°˜í™˜í•œë‹¤.
  */
 }
