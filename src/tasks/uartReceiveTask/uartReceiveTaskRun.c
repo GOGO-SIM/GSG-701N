@@ -7,10 +7,6 @@
 uint8_t rxBuffer[DATA_RECEIVE_SIZE];
 tGsmpMsg exampleMsg;
 
-// TODO : dev merge 후 삭제 필요
-int gRecvFlag;
-//extern int gRecvFlag;
-
 // len개의 바이트를 받을 때 까지 데이터를 수신받는다.
 int recvUartBytes(uint8_t* buffer, int len)
 {
@@ -61,7 +57,6 @@ void runUartReceive()
 		int32_t response = *((int32_t*)exampleMsg.payload);
 		xil_printf("responseMsg: %d\r\n", response);
 	}
-	//  Msg PAYLOAD 내용을 저장한다
 }
 
 void explode()

@@ -34,10 +34,10 @@ uint16_t calcCrc(const void* data, uint16_t length)
 
 // CRC 검사 함수
 // CRC 검사 성공 후 성공|실패 반환
+
 int checkCrc(void* recvData)
 {
     if (!recvData) return FALSE;
-
     // 1. 헤더 추출 (메모리 안정성을 위해 복사)
     tGsmpMessageHeader header;
     memcpy(&header, recvData, sizeof(tGsmpMessageHeader));
