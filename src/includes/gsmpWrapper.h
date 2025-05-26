@@ -7,8 +7,8 @@
 #include "global.h"
 
 /*
- * void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
+ * void* gsmpWrapper(int messageId, int messageStatus, void* pPayload)
  * GSMP(GoSim Message Protocol)의 전송을 지원한다.
  * return : ByteStream 반환
  **/
-tGsmpMsg gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId);
+void gsmpWrapper(int messageId, int messageStatus, void* pPayload);

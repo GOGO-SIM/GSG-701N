@@ -5,6 +5,7 @@
 #include "xuartps.h"
 #include "xparameters.h"
 #include "uartSendTaskMain.h"
+#include "gsmpWrapper.h"
 // blocking 무효화
 #define xil_printf(...)  do {} while(0)
 
@@ -19,7 +20,7 @@ void uartSendTaskMain(void *pvParameters) {
 
 void runUartSend()
 {
-	tGsmpMsg uartSendMsg;
+	//tGsmpMsg uartSendMsg;
 	// 1. gIsUartReceive가 True인지 확인한다.
 	if(gRecvFlag == FALSE)
 	{
@@ -34,24 +35,47 @@ void runUartSend()
 	}
 	gRecvFlag = FALSE;
 
+	gControlCmd.x = 1.02;
+	gControlCmd.y = 3.04;
+	gControlCmd.z = 5.06;
+
+	// example tAcbPayload
+	tAcbPayload examplePayload;
+	examplePayload.canadCmd = gControlCmd;
+	examplePayload.currentStatus = ENGAGE;
+
 	// gsmp 프로토콜에 맞춰 메세지를 감싼다.
-	gsmpWrapper(ACB_SEND_MSG_ID, OK, gC, destId)
+	gsmpWrapper(ACB_SEND_MSG_ID, OK, &examplePayload);
 
 	// 전송을 수행한다.
-	sendData(uartSendMsg, sizeof(uartSendMsg));
+	sendUartData(&gAcbSendMsg);
 }
 
 
-void sendData(tGsmpMsg msg, uint16_t len)
+void sendUartData(tGsmpMsg* msg)
 {
-	// Msg를 버퍼로  변환
-	uint8_t txBuffer[bufferSizeNoCRC + crcSize]; // CRC 포함
-	memcpy(txBuffer, &gSendMsg.header, headerSize);
-	memcpy(txBuffer + headerSize, (const uint8_t*) msg.payload, msg.payload.size());
-	txBuffer[bufferSizeNoCRC + 0] = msg.crc & 0xFF;        // LSB
-	txBuffer[bufferSizeNoCRC + 1] = (msg.crc >> 8) & 0xFF; // MSB
-    // 버퍼에 들어간 바이트의 수만큼 UART로 전송
-    XUartPs_Send(&gUartPs, buffer, len);
-    //xil_printf("\r\n");
-    //xil_printf("TX: 0x%02X %02X %02X %02X\n", buffer[0], buffer[1], buffer[2], buffer[3]);
+    const uint8_t headerSize = sizeof(tGsmpMessageHeader);
+    const uint8_t payloadSize = msg->header.msgLen;
+    const uint8_t crcSize = sizeof(uint16_t);
+    const uint8_t totalLen = headerSize + payloadSize + crcSize;
+
+    uint8_t txBuffer[totalLen];
+
+    // 1. 헤더 복사
+    memcpy(txBuffer, &msg->header, headerSize);
+    // 2. payload 복사
+    memcpy(txBuffer + headerSize, (const uint8_t*) msg->payload, payloadSize);
+    // 3. CRC 복사 (Little Endian)
+    txBuffer[headerSize + payloadSize + 0] = msg->CRC & 0xFF;
+    txBuffer[headerSize + payloadSize + 1] = (msg->CRC >> 8) & 0xFF;
+
+    // 4. 디버깅용 출력
+        xil_printf("UART TX (%d bytes): ", totalLen);
+        for (int i = 0; i < totalLen; ++i) {
+            xil_printf("%02X ", txBuffer[i]);
+        }
+        xil_printf("\r\n");
+
+    // 5. 전송
+    XUartPs_Send(&gUartPs, txBuffer, totalLen);
 }
