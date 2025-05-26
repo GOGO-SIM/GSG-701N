@@ -3,7 +3,7 @@
 	<name>GSG-701N</name>
 	<comment>Created by Vitis v2022.2</comment>
 	<projects>
-		<project>ETH_HSTL_wrapper</project>
+		<project>GSS_701N_PLATFORM</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
