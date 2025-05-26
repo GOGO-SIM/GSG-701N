@@ -8,13 +8,6 @@
 #define PHY_ADDR   0x0
 #define PHY_BASIC_STATUS    0x1
 
-// Ethernet 체크 위해 존재하는 명령
-
-#define MDIO_CMD_START (1 << 31)
-#define MDIO_CMD_READ (1 << 30)
-#define MDIO_PHY_0 ((PHY_ADDR & 0x1F) << 23)
-#define MDIO_PHY_BASIC_STATUS ((PHY_BASIC_STATUS & 0x1F) << 18)
-
 // OCM 메모리 체크 주소
 
 #define OCM_PARITY_CTRL_ADDR   0xF800C000U //OCM 컨트롤 용 주소
@@ -44,27 +37,6 @@ void debug()
 {
     printf("VCCINT: %.3lf V | VCCAUX: %.3lf V | VCCBRAM: %.3lf V | TEMP: %.3lf'C |\r\n",
             gVoltageInt,gVoltageAux,gVoltageBram ,gCelcius);
-}
-
-static u16 readEthStatus()
-{
-   sTimeOutEth = 100000;
-   sEthStatReadCmd = MDIO_CMD_START |  // MDIO 명령 시작
-                  MDIO_CMD_READ | // MDIO 읽어오기 명령
-                 MDIO_PHY_0 | // 읽어올 위치
-                 MDIO_PHY_BASIC_STATUS; // 읽어올 정보
-
-    Xil_Out32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET, sEthStatReadCmd);
-
-    while ( (( Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_NWSR_OFFSET ) & XEMACPS_NWSR_MDIOIDLE_MASK) == 0 ) && --sTimeOutEth );
-
-    if(sTimeOutEth == 0)
-    {
-       gPassCbitFlag = FALSE;
-       sTimeOutEth = 100000;
-    }
-
-   return Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET) & 0xFFFF;
 }
 
 static void checkPower()
@@ -151,9 +123,9 @@ static void checkMemory()
 
 static void checkEthernet()
 {
-   sEthernetStatus = readEthStatus();
+   XEmacPs_PhyRead(&gXemacPsInst, PHY_ADDR,PHY_BASIC_STATUS,&sEthernetStatus);
 
-   if (((sEthernetStatus & 0x4) == 0) || (sTimeOutEth == 0)) // 이더넷 연결 FALSE
+   if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
    {
       printf("Ethernet Failed | ");
       gPassCbitFlag = FALSE;
@@ -162,7 +134,7 @@ static void checkEthernet()
    else
    {
       printf("Ethernet Passed | "); // 디버깅용
-    }
+   }
    //디버깅용------------
 }
 
@@ -176,8 +148,9 @@ static void checkRegister()
 static void runCbit(void)
 {
    static int sErrorCount = 0;
-   while(1)
-   {
+
+   while(1){
+
       if(sErrorCount >= 5)
       {
          xil_printf(" CBIT Failed : explode();\n");
@@ -185,6 +158,7 @@ static void runCbit(void)
          // 5번 연속 에러시 자폭
       }
       checkPower();
+
       if ( gPassCbitFlag == TRUE )
       {
          checkRegister();
