@@ -13,6 +13,7 @@
 #include "xil_io.h"
 #include "gsgTypes.h"
 #include "xemacps_hw.h"
+#include "xemacps.h"
 
 /* ��ũ�� ���� */
 #ifndef TRUE
@@ -55,6 +56,8 @@ extern XUartPs gUartPs;
 extern XUartPs_Config *gUartConfig;
 extern XSysMon gSysMonInst;
 extern XSysMon_Config *gXadcConfig;
+extern XEmacPs gXemacPsInst;
+extern XEmacPs_Config *gXemacConfig;
 
 /**
  * [task handlers]

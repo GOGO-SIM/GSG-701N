@@ -42,6 +42,8 @@ XUartPs gUartPs;
 XUartPs_Config *gUartConfig;
 XSysMon gSysMonInst;
 XSysMon_Config *gXadcConfig;
+XEmacPs gXemacPsInst;
+XEmacPs_Config *gXemacConfig;
 
 uint32_t gFailCount[4];
 

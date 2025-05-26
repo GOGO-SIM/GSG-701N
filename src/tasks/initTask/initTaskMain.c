@@ -86,6 +86,9 @@ void initMemoryCheck(){
 static void tcpipInitDone(void *arg) {
     ip4_addr_t ipaddr, netmask, gw, serverIp;
 
+    gXemacConfig = XEmacPs_LookupConfig( XPAR_PS7_ETHERNET_0_DEVICE_ID );
+    XEmacPs_CfgInitialize( &gXemacPsInst, gXemacConfig, gXemacConfig->BaseAddress);
+
     unsigned char macAddr[] = { 0x00, 0x18, 0x3E, 0x04, 0x50, 0x84 };
     err_t err;
 
@@ -96,7 +99,7 @@ static void tcpipInitDone(void *arg) {
     IP4_ADDR(&gw, 192, 168, 1, 1);
     ipaddr_aton(SERVER_IP_ADDR, &serverIp);
 
-    // TODO: tcp_init()�쓽 �슦�꽑 �닚�쐞媛� �궙�븘�꽌, init�씠 �뒪耳�以꾨쭅 以묎컙�뿉 �셿猷뚮릺�뒗 �쁽�긽�씠 �깮湲대떎.
+    // TODO: tcp_init() 쓽  슦 꽑  닚 쐞媛   궙 븘 꽌, init 씠  뒪耳 以꾨쭅 以묎컙 뿉  셿猷뚮릺 뒗  쁽 긽 씠  깮湲대떎.
 
     if (!xemac_add(&gGsgNetif, &ipaddr, &netmask, &gw, macAddr,
     		PLATFORM_EMAC_BASEADDR))
@@ -117,9 +120,9 @@ static void tcpipInitDone(void *arg) {
                    xemacif_input_thread,
                    &gGsgNetif,
                    1024,
-                   4);
+                   29);
 
-    // UDP �겢�씪�씠�뼵�듃 �꽕�젙
+    // UDP  겢 씪 씠 뼵 듃  꽕 젙
     gpUdpClientConn = netconn_new(NETCONN_UDP);
     if (gpUdpClientConn == NULL) {
         xil_printf("netconn_new failed!\r\n");
@@ -136,7 +139,7 @@ static void tcpipInitDone(void *arg) {
 	}
 	xil_printf("client setting complete %d\r\n", err);
 
-	// UDP �꽌踰� �꽕�젙
+	// UDP  꽌踰   꽕 젙
     gpUdpServerConn = netconn_new(NETCONN_UDP);
     if (gpUdpServerConn == NULL) {
         xil_printf("netconn_new failed!\r\n");
@@ -160,7 +163,6 @@ static void tcpipInitDone(void *arg) {
 
 void initUdpServer() {
     xil_printf("-----lwIP netconn UDP Test Application------\r\n");
-
     tcpip_init(tcpipInitDone, NULL);
 }
 
