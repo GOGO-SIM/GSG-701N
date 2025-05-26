@@ -45,6 +45,7 @@ XSysMon_Config *gXadcConfig;
 
 uint32_t gFailCount[4];
 
+tGSsmpMsg gSendMsg;
 
 /**
  * gImuData
