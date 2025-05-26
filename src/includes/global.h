@@ -37,6 +37,12 @@
 /* Ȱ���� ���� ���� extern */
 extern int gRecvFlag;
 extern uint32_t gFailCount[4];
+
+// tGsmpMsg gSendMsg;
+extern tGsmpMsg gAcbSendMsg;
+extern tGsmpMsg gAcbEchoSendMsg;
+extern tGsmpMsg gTelemetryMsg;
+
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
 extern tDVector3 gAccCmd;
@@ -114,6 +120,13 @@ enum eStatus
 	INTERNAL_ERROR = 2,
 };
 
+enum eModeStatus
+{
+	WAIT = 0,
+	ENGAGE = 1,
+	SAFE = 2,
+	REEXPLORE = 3,
+};
 
 /*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/
 extern double gVoltageInt;

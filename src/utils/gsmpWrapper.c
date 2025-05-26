@@ -1,15 +1,93 @@
+#include "gsmpWrapper.h"
+#define xil_printf(...)  do {} while(0)
 /*
- * void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
- * GSMP(GoSim Message Protocol)ÀÇ Àü¼ÛÀ» Áö¿øÇÑ´Ù.
- * return : ByteStream ¹ÝÈ¯
+ * tGsmpMsg* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
+ * GSMP(GoSim Message Protocol)ì˜ ì „ì†¡ì„ ì§€ì›í•œë‹¤.
+ * return : X
  *
  **/
-void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
+void gsmpWrapper(int messageId, int messageStatus, void* pPayload)
 {
-/**
- * [µ¥ÀÌÅÍÀÇ Æ÷¸ËÀ» wrapÇÑ´Ù.]
- * ¼Û¼ö½ÅÇÏ´Â ¸ðµç ½Ã½ºÅÛÀº ¸®Æ² ¿£µð¾È Çü½ÄÀ» »ç¿ëÇÑ´Ù°í °¡Á¤ÇÑ´Ù.
- * 1. ÀÎÀÚ°ªÀ» ¹ÙÅÁÀ¸·Î ¹ÙÀÌÆ® ½ºÆ®¸²À» »ý¼ºÇÑ´Ù.
- * 2. »ý¼ºÇÑ ¹ÙÀÌÆ®½ºÆ®¸²À» ¹ÝÈ¯ÇÑ´Ù.
- */
+
+	uint8_t headerSize = sizeof(tGsmpMessageHeader);
+	uint8_t payloadSize;
+	uint8_t crcSize = 2;
+	tGsmpMsg* pDestMsg = NULL;
+	uint8_t destId;
+	/**
+	 * [ë°ì´í„°ì˜ í¬ë§·ì„ wrapí•œë‹¤.]
+	 * ì†¡ìˆ˜ì‹ í•˜ëŠ” ëª¨ë“  ì‹œìŠ¤í…œì€ ë¦¬í‹€ ì—”ë””ì•ˆ í˜•ì‹ì„ ì‚¬ìš©í•œë‹¤ê³  ê°€ì •í•œë‹¤.
+	 * 1. ì¸ìžê°’ì„ ë°”íƒ•ìœ¼ë¡œ ë°”ì´íŠ¸ ìŠ¤íŠ¸ë¦¼ì„ ìƒì„±í•œë‹¤.
+	 * 2. ìƒì„±í•œ ë°”ì´íŠ¸ìŠ¤íŠ¸ë¦¼ì„ ë°˜í™˜í•œë‹¤.
+	 */
+	// í—¤ë” ì„¤ì •
+	//msg.header.startflag = START_FLAG;
+	//msg.header.msgId = messageId;
+
+	switch(messageId)
+	{
+	case ACB_SEND_MSG_ID :
+	{
+		destId = ACB_ID;
+		payloadSize = sizeof(tAcbPayload);
+		//gAcbSendMsg
+		pDestMsg = &gAcbSendMsg;
+		xil_printf("ACB_SEND_MSG\r\n");
+		break;
+	}
+	case ACB_ECHO_SEND_MSG_ID :
+	{
+		destId = ACB_ID;
+		payloadSize = sizeof(uint8_t);
+		//gAcbEchoSendMsg
+		pDestMsg = &gAcbEchoSendMsg;
+		break;
+	}
+	case TELEMETRY_MSG_ID :
+	{
+		destId = TELMETRY_ID;
+		payloadSize = sizeof(tTelemetryData);
+		//gTelemetryMsg
+		pDestMsg = &gTelemetryMsg;
+		break;
+	}
+	case IMU_MSG_ID :
+	case SEEKER_MSG_ID :
+	case ACB_RECV_MSG_ID :
+	case ACB_ECHO_RECV_MSG_ID :
+	{
+		xil_printf("ERROR : WRONG MSGID - GSMPWRAPPER\r\n");
+		break;
+	}
+	default :
+	{
+		break;
+	}
+	}
+	// payload ì €ìž¥
+	if (pDestMsg != NULL && pPayload != NULL)
+	{
+		// header ì €ìž¥
+		pDestMsg->header.startflag = START_FLAG;
+		pDestMsg->header.srcId = GCU_ID;
+		pDestMsg->header.destId = destId;
+		pDestMsg->header.msgId = messageId;
+		pDestMsg->header.msgStat = messageStatus;
+		pDestMsg->header.msgLen = payloadSize;
+
+		memcpy(pDestMsg->payload, pPayload, payloadSize);
+		xil_printf("WRAPPER : payloadSize = %d bytes\r\n", payloadSize);
+
+		// CRCë¥¼ ê³„ì‚°í•˜ì—¬ tGsmpMsgì— ì €ìž¥
+		// CRC ê³„ì‚°ìš© ìž„ì‹œ ë²„í¼ë¥¼ ì§€ì •í•˜ì—¬ crc ì—°ì‚°ì„ ìˆ˜í–‰í•œë‹¤.
+		uint8_t tmpBuf[headerSize+payloadSize];
+		//í—¤ë” ë³µì‚¬
+		memcpy(tmpBuf, (const uint8_t*)&pDestMsg->header, headerSize);
+		// payload ë‚´ìš© ë³µì‚¬ (payloadê°€ ê°€ë¦¬í‚¤ëŠ” ë©”ëª¨ë¦¬ ë‚´ìš©)
+		memcpy(tmpBuf + headerSize, (const uint8_t*)pDestMsg->payload, payloadSize);
+		// CRC ê³„ì‚°
+		pDestMsg->CRC = calcCrc(tmpBuf, headerSize + payloadSize);
+	}
+
+	return;
 }
