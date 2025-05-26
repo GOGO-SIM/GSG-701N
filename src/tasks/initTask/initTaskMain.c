@@ -38,14 +38,14 @@ struct netconn *gpUdpClientConn;
 
 int initUartPs()
 {
-    // UART �꽕�젙 �젙蹂� 援ъ“泥� �룷�씤�꽣
-    XUartPs_Config *Config;
+    // UART 설정 정보 구조체 포인터
+
     int Status;
 
-    // UART �뵒諛붿씠�뒪 ID�뿉 �빐�떦�븯�뒗 �꽕�젙 �젙蹂대�� 寃��깋�빐�꽌 Config�뿉 ���옣
-    // BaseAddress, BaudRate �벑 �븯�뱶�썾�뼱 �젙蹂� �룷�븿
-    Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
-    if (Config == NULL)
+    // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
+    // BaseAddress, BaudRate 등 하드웨어 정보 포함
+    gUartConfig = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
+    if (gUartConfig == NULL)
     {
     	xil_printf("Config is NULL\n");
     	return XST_FAILURE;
@@ -156,7 +156,6 @@ static void tcpipInitDone(void *arg) {
     }
 
     //netconn_set_nonblocking(gpUdpServerConn, TRUE);
-    xTaskNotifyGive(xInitTaskHandle);
 }
 
 void initUdpServer() {
@@ -235,7 +234,6 @@ void initTaskMain( void *pvParameters )
 
 	initUdpServer();
     xil_printf("UDP Server initialized on port 5001\r\n");
-	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	initUartPs();
     xil_printf("UART successfully initialized\r\n");
     initXsysMon();
