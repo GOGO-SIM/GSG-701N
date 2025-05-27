@@ -18,19 +18,19 @@ void runUartSend()
 	}
 	gRecvFlag = FALSE;
 
+	tAcbPayload acbSendPayload;
+	acbSendPayload.canadCmd = gControlCmd;
+	acbSendPayload.currentStatus = gModeStatus;
+
 #ifdef TEST
 	gControlCmd.x = 1.02;
 	gControlCmd.y = 3.04;
 	gControlCmd.z = 5.06;
 	// example tAcbPayload
-	tAcbPayload examplePayload;
-	examplePayload.canadCmd = gControlCmd;
-	examplePayload.currentStatus = ENGAGE;
-	// gsmp 프로토콜에 맞춰 메세지를 감싼다.
-	gsmpWrapper(ACB_SEND_MSG_ID, OK, &examplePayload);
-#else
-	//gsmpWrapper(ACB_SEND_MSG_ID, OK, &g);
+	acbSendPayload.canadCmd = gControlCmd;
+	acbSendPayload.currentStatus = ENGAGE;
 #endif
+	gsmpWrapper(ACB_SEND_MSG_ID, OK, &acbSendPayload);
 	// 전송을 수행한다.
 	sendUartData();
 }

@@ -54,6 +54,8 @@ extern uint32_t gFailCount[4];
 //extern tGsmpMsg gTelemetryMsg;
 extern uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
+// GCU의 현재 모드
+extern int gModeStatus;
 
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
