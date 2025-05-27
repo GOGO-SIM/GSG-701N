@@ -45,13 +45,16 @@ XSysMon_Config *gXadcConfig;
 XEmacPs gXemacPsInst;
 XEmacPs_Config *gXemacConfig;
 
+// 연속 실패 횟수 저장
 uint32_t gFailCount[4];
 
-// tGsmpMsg gSendMsg;
+// ACB, ECHO, TELEMETRY SendTask 및 wrapper
 tGsmpMsg gAcbSendMsg;
 tGsmpMsg gAcbEchoSendMsg;
 tGsmpMsg gTelemetryMsg;
 
+// GCU의 현재 모드
+int gModeStatus;
 
 /**
  * gImuData
@@ -94,7 +97,7 @@ tDVector3 gControlCmd;
  * - PBIT_FAILED
  * - CBIT_FAILED
  */
-uint32_t gGcuStatus;
+uint32_t gGcuStatus = 0;
 
 /*=====CBIT&PBIT Standard=====*/
 

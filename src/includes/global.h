@@ -77,7 +77,7 @@ extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
 extern TaskHandle_t xPbitFailTaskHandle;
 
-/* enum Ŭ���� ���� */
+/* enum 클래스 정의 */
 enum eGcuStatus
 {
 	NORMAL = 0,
