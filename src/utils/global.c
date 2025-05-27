@@ -49,9 +49,7 @@ XEmacPs_Config *gXemacConfig;
 uint32_t gFailCount[4];
 
 // ACB, ECHO, TELEMETRY SendTask 및 wrapper
-tGsmpMsg gAcbSendMsg;
-tGsmpMsg gAcbEchoSendMsg;
-tGsmpMsg gTelemetryMsg;
+uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
 // GCU의 현재 모드
 int gModeStatus;
