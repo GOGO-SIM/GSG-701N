@@ -46,9 +46,10 @@ XSysMon_Config *gXadcConfig;
 uint32_t gFailCount[4];
 
 // tGsmpMsg gSendMsg;
-tGsmpMsg gAcbSendMsg;
-tGsmpMsg gAcbEchoSendMsg;
-tGsmpMsg gTelemetryMsg;
+//tGsmpMsg gAcbSendMsg;
+//tGsmpMsg gAcbEchoSendMsg;
+//tGsmpMsg gTelemetryMsg;
+uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
 
 /**

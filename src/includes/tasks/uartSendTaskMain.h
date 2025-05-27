@@ -6,7 +6,7 @@
 // This typedef contains configuration information for the device.
 void runUartSend();
 void explode();		// TODO : 삭제
-void sendUartData(tGsmpMsg* msg);
+void sendUartData();
 void uartSendTaskMain(void *pvParameters);
 
 static const uint8_t headerSize = sizeof(tGsmpMessageHeader);

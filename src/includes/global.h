@@ -34,14 +34,25 @@
 #define UART_BAUD 115200
 #endif
 
+#ifndef TELEMETRY_MSG_SIZE
+#define TELEMETRY_MSG_SIZE 165
+#endif
+#ifndef ACB_SEND_MSG_SIZE
+#define ACB_SEND_MSG_SIZE 37
+#endif
+#ifndef ACB_ECHO_SEND_MSG_SIZE
+#define ACB_ECHO_SEND_MSG_SIZE 17
+#endif
 /* Ȱ���� ���� ���� extern */
 extern int gRecvFlag;
 extern uint32_t gFailCount[4];
 
 // tGsmpMsg gSendMsg;
-extern tGsmpMsg gAcbSendMsg;
-extern tGsmpMsg gAcbEchoSendMsg;
-extern tGsmpMsg gTelemetryMsg;
+//extern tGsmpMsg gAcbSendMsg;
+//extern tGsmpMsg gAcbEchoSendMsg;
+//extern tGsmpMsg gTelemetryMsg;
+extern uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
+
 
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
