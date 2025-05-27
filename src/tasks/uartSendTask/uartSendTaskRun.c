@@ -32,27 +32,11 @@ void runUartSend()
 	//gsmpWrapper(ACB_SEND_MSG_ID, OK, &g);
 #endif
 	// 전송을 수행한다.
-	sendUartData(&gAcbSendMsg);
+	sendUartData();
 }
 
-
-void sendUartData(tGsmpMsg* msg)
+void sendUartData()
 {
-    const uint8_t headerSize = sizeof(tGsmpMessageHeader);
-    const uint8_t payloadSize = msg->header.msgLen;
-    const uint8_t crcSize = sizeof(uint16_t);
-    const uint8_t totalLen = headerSize + payloadSize + crcSize;
-
-    uint8_t txBuffer[totalLen];
-
-    // 1. 헤더 복사
-    memcpy(txBuffer, &msg->header, headerSize);
-    // 2. payload 복사
-    memcpy(txBuffer + headerSize, (const uint8_t*) msg->payload, payloadSize);
-    // 3. CRC 복사 (Little Endian)
-    txBuffer[headerSize + payloadSize + 0] = msg->CRC & 0xFF;
-    txBuffer[headerSize + payloadSize + 1] = (msg->CRC >> 8) & 0xFF;
-
 #ifdef DEBUG_UART_SEND
     // 4. 디버깅용 출력
 //        xil_printf("UART TX (%d bytes): ", totalLen);
@@ -61,7 +45,8 @@ void sendUartData(tGsmpMsg* msg)
 //        }
 //        xil_printf("\r\n");
 #endif
-
     // 5. 전송
-    XUartPs_Send(&gUartPs, txBuffer, totalLen);
+    XUartPs_Send(&gUartPs, gSendBuffer, ACB_SEND_MSG_SIZE);
 }
+
+
