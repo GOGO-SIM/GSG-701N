@@ -167,7 +167,7 @@ static void checkUartRegister()
 
 static void checkUart()
 {
-	checkUartLoopback();
+	//checkUartLoopback();
 	checkUartRegister();
 }
 
@@ -206,6 +206,7 @@ static void runPbit(void)
 
 void pbitTaskMain( void *pvParameters )
 {
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	xil_printf("RUN -- %s\r\n\n", pcTaskGetName(NULL));
 	runPbit();
 	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
@@ -220,5 +221,6 @@ void pbitTaskMain( void *pvParameters )
 	    xil_printf("\n GSG-701N / [PBIT] : PBIT Failed\r\n\n");
 	    xTaskNotifyGive(xPbitFailTaskHandle);
 	}
+	xTaskNotifyGive(xSchedulingTaskHandle);
 	vTaskDelete(NULL);
 }

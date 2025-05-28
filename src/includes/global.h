@@ -14,6 +14,7 @@
 #include "gsgTypes.h"
 #include "xemacps_hw.h"
 #include "xemacps.h"
+#include "semphr.h"
 
 /* ��ũ�� ���� */
 #ifndef TRUE
@@ -53,6 +54,7 @@ extern uint32_t gFailCount[4];
 //extern tGsmpMsg gAcbEchoSendMsg;
 //extern tGsmpMsg gTelemetryMsg;
 extern uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
+
 
 // GCU의 현재 모드
 extern int gModeStatus;
