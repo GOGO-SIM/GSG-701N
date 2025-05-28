@@ -167,7 +167,7 @@ static void checkUartRegister()
 
 static void checkUart()
 {
-	//checkUartLoopback();
+	checkUartLoopback();
 	checkUartRegister();
 }
 
