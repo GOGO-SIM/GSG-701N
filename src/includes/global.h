@@ -129,7 +129,7 @@ enum eSourceId
 	TELMETRY_ID = 4
 };
 
-enum eStatus
+enum eMsgStatus
 {
 	OK = 0,
 	CRC_ERROR = 1,
@@ -153,5 +153,15 @@ extern double gCelcius;
 
 extern u32 gPassCbitFlag;
 extern u32 gPassPbitFlag;
+
+/* UDP netconn */
+extern struct netconn *gpUdpServerConn;
+extern struct netconn *gpUdpClientConn;
+
+/* Receive Payload */
+extern tAcbRecvPayload gAcbRecvPayload;
+extern tEchoPayload gEchoPayload;
+extern tImuPayload gImuPayload;
+extern tSeekerPayload gSeekerPayload;
 
 #endif
