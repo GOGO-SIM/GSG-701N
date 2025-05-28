@@ -149,34 +149,30 @@ static void runCbit(void)
 {
    static int sErrorCount = 0;
 
-   while(1){
-
-      if(sErrorCount >= 5)
-      {
-         xil_printf(" CBIT Failed : explode();\n");
-         vTaskSuspendAll(); //폭발해서 모든 태스크 정지
-         // 5번 연속 에러시 자폭
-      }
-      checkPower();
-
-      if ( gPassCbitFlag == TRUE )
-      {
-         checkRegister();
-      }
-      if ( gPassCbitFlag == FALSE )
-      {
-         sErrorCount += 1;
-      }
-      else if ( gPassCbitFlag == TRUE )
-      {
-         sErrorCount = 0;
-      }
-      gPassCbitFlag = TRUE;
-      //디버깅용------------
-      debug(sErrorCount);
-      vTaskDelay(20);
-      //디버깅용------------
+   if(sErrorCount >= 5)
+   {
+      xil_printf(" CBIT Failed : explode();\n");
+      //vTaskSuspendAll(); //폭발해서 모든 태스크 정지
+      // 5번 연속 에러시 자폭
    }
+   checkPower();
+
+   if ( gPassCbitFlag == TRUE )
+   {
+      checkRegister();
+   }
+   if ( gPassCbitFlag == FALSE )
+   {
+      sErrorCount += 1;
+   }
+   else if ( gPassCbitFlag == TRUE )
+   {
+      sErrorCount = 0;
+   }
+   gPassCbitFlag = TRUE;
+   //디버깅용------------
+   debug(sErrorCount);
+   //디버깅용------------
 }
 
 void cbitTaskMain( void *pvParameters )
