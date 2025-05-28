@@ -54,6 +54,8 @@ extern uint32_t gFailCount[4];
 //extern tGsmpMsg gTelemetryMsg;
 extern uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
+// GCU의 현재 모드
+extern int gModeStatus;
 
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
@@ -88,7 +90,7 @@ extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
 extern TaskHandle_t xPbitFailTaskHandle;
 
-/* enum Ŭ���� ���� */
+/* enum 클래스 정의 */
 enum eGcuStatus
 {
 	NORMAL = 0,
