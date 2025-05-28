@@ -12,74 +12,75 @@
 
 #define TELEMETRY_IP  "192.168.1.4"
 #define TELEMETRY_PORT    1234
-
-static tTelemetryData sTelemetryPayload;
-static int sTeleMsgLen = sizeof(tGsmpMessageHeader) +  sizeof(tTelemetryData) + 2;
-static int sframeCount;
+extern struct netconn *gpUdpClientConn;
 struct netbuf *teleSendBuf;
-u8 sTaskStatusFlags;
+
+static int sTeleMsgLen = sizeof(tGsmpMessageHeader) +  sizeof(tTelemetryData) + 2;
+static tTelemetryData sTelemetryPayload;
+static int sframeCount;
+static u8 sTaskStatusFlags;
 
 
 static void writeFlag()
  {
-   sTaskStatusFlags = 0x00; // Clear All
+     sTaskStatusFlags = 0x00; // Clear All
 
-   if(gFailCount[UART_FAIL] != FALSE)
-   {
-      sTaskStatusFlags |= ( TRUE << ACB_ERROR_POS );
-   }
-   if(gFailCount[IMU_DATA_FAIL] != FALSE)
-   {
-      sTaskStatusFlags |= ( TRUE << SEEKER_ERROR_POS );
-   }
-   if(gFailCount[SEEKER_DATA_FAIL] != FALSE)
-   {
-      sTaskStatusFlags |= ( TRUE << IMU_ERROR_POS );
-   }
-   sTaskStatusFlags |= ( !gPassCbitFlag << CBIT_ERROR_POS );
-   sTaskStatusFlags |= ( !gPassPbitFlag << PBIT_ERROR_POS );
+     if(gFailCount[UART_FAIL] != FALSE)
+     {
+        sTaskStatusFlags |= ( TRUE << ACB_ERROR_POS );
+     }
+     if(gFailCount[IMU_DATA_FAIL] != FALSE)
+     {
+        sTaskStatusFlags |= ( TRUE << SEEKER_ERROR_POS );
+     }
+     if(gFailCount[SEEKER_DATA_FAIL] != FALSE)
+     {
+        sTaskStatusFlags |= ( TRUE << IMU_ERROR_POS );
+     }
+     sTaskStatusFlags |= ( !gPassCbitFlag << CBIT_ERROR_POS );
+     sTaskStatusFlags |= ( !gPassPbitFlag << PBIT_ERROR_POS );
  }
 
  static void writePayload()
  {
-   sTelemetryPayload.cnt = sframeCount;  // Write Current FrameCount
-   sTelemetryPayload.bitFlags = sTaskStatusFlags; // Write Current StatusFlag;
-   sTelemetryPayload.imuData = gImuData;
-   sTelemetryPayload.seekerData = gSeekerData;
-   sTelemetryPayload.accCmd = gAccCmd;
-   sTelemetryPayload.quarternion = gAttitude;
-   sTelemetryPayload.controlCmd = gControlCmd;
+     sTelemetryPayload.cnt = sframeCount;  // Write Current FrameCount
+     sTelemetryPayload.bitFlags = sTaskStatusFlags; // Write Current StatusFlag;
+     sTelemetryPayload.imuData = gImuData;
+     sTelemetryPayload.seekerData = gSeekerData;
+     sTelemetryPayload.accCmd = gAccCmd;
+     sTelemetryPayload.quarternion = gAttitude;
+   	 sTelemetryPayload.controlCmd = gControlCmd;
  }
 
  static void sendViaUdp()
  {
-       err_t err;
+     err_t err;
 
-       teleSendBuf = netbuf_new();
-       if (!teleSendBuf)
-       {
-          xil_printf("Failed to Create nebuf\r\n");
-       }
-       netbuf_ref(teleSendBuf, gSendBuffer, sTeleMsgLen);
-       err = netconn_send(gpUdpClientConn, teleSendBuf);
-       if (err != ERR_OK)
-       {
-          xil_printf("\nFailed to send UDP packet: %d\r\n\n", err);
-       }
-       else
-       {
-          xil_printf("\nSent Tele UDP packet to %s:%d\r\n\n", TELEMETRY_IP, TELEMETRY_PORT);
-       }
-       netbuf_delete(teleSendBuf);
+     teleSendBuf = netbuf_new();
+     if (!teleSendBuf)
+     {
+        xil_printf("Failed to Create nebuf\r\n");
+     }
+     netbuf_ref(teleSendBuf, gSendBuffer, sTeleMsgLen);
+     err = netconn_send(gpUdpClientConn, teleSendBuf);
+     if (err != ERR_OK)
+     {
+        xil_printf("\nFailed to send UDP packet: %d\r\n\n", err);
+     }
+     else
+     {
+        xil_printf("\nSent Tele UDP packet to %s:%d\r\n\n", TELEMETRY_IP, TELEMETRY_PORT);
+     }
+     netbuf_delete(teleSendBuf);
  }
 
  static void runTelemetry()
  {
-   sframeCount += 1;
-   writeFlag();
-   writePayload();
-   gsmpWrapper(TELEMETRY_MSG_ID,OK,&sTelemetryPayload);
-   sendViaUdp();
+	 sframeCount += 1;
+	 writeFlag();
+	 writePayload();
+	 gsmpWrapper(TELEMETRY_MSG_ID,OK,&sTelemetryPayload);
+	 sendViaUdp();
  }
 
 
