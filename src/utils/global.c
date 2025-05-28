@@ -61,7 +61,6 @@ int gModeStatus;
  */
 tImuData gImuData;
 
-
 /**
  * gSeekerData
  * los double vector 3(x, y, z)
@@ -87,6 +86,15 @@ tDVector4 gAttitude;
  * ��ǥ ���ӵ� -> Guidance  Task return�ϴ� ��
  */
 tDVector3 gControlCmd;
+
+
+/*
+ * [Receive Payload]
+ */
+tAcbRecvPayload gAcbRecvPayload;
+tEchoPayload gEchoPayload;
+tImuPayload gImuPayload;
+tSeekerPayload gSeekerPayload;
 
 /**
  * gGcuStatus

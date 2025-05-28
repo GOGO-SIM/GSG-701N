@@ -29,9 +29,6 @@
 #define OCM_PARITY_EN_IRQ_SINGLE  (1 << 2) // 싱글 비트 에러 인터럽트 Enable
 #define OCM_PARITY_EN_IRQ_MULTI   (1 << 3) // 멀티 비트 에러 인터럽트 Enable
 
-struct netbuf *recvBuf;
-
-struct netbuf *sendBuf;
 struct netif gGsgNetif;
 struct netconn *gpUdpServerConn;
 struct netconn *gpUdpClientConn;
@@ -64,7 +61,6 @@ int initUartPs()
 
     return XST_SUCCESS;
 }
-
 
 
 void initXsysMon()
@@ -158,7 +154,7 @@ static void tcpipInitDone(void *arg) {
         vTaskDelete(NULL);
     }
 
-    //netconn_set_nonblocking(gpUdpServerConn, TRUE);
+    netconn_set_nonblocking(gpUdpServerConn, TRUE);
 }
 
 void initUdpServer() {
@@ -170,6 +166,8 @@ TaskHandle_t xtest;
 
 void testUdp( void *pvParameters )
 {
+	struct netbuf *recvBuf;
+	struct netbuf *sendBuf;
 // Test: UDP echo server
 //	static ip_addr_t *clientAddr;
 //	static u16_t clientPort;
@@ -204,26 +202,26 @@ void testUdp( void *pvParameters )
 
 	err_t err;
 	for(;;) {
-	        // TODO: allocate memory -> we have to find another way.
-	        sendBuf = netbuf_new();
-	        if (!sendBuf) {
-	            xil_printf("Failed to create netbuf\r\n");
-	            continue;
-	        }
+		// TODO: allocate memory -> we have to find another way.
+		sendBuf = netbuf_new();
+		if (!sendBuf) {
+			xil_printf("Failed to create netbuf\r\n");
+			continue;
+		}
 
-	        netbuf_ref(sendBuf, "<HELLO SERVER>", 14);
+		netbuf_ref(sendBuf, "<HELLO SERVER>", 14);
 
-	        // send a message to server.
-	        err = netconn_send(gpUdpClientConn, sendBuf);
-	        if (err != ERR_OK) {
-	            xil_printf("Failed to send UDP packet: %d\r\n", err);
-	        } else {
-	            xil_printf("Sent UDP packet to %s:%d\r\n", SERVER_IP_ADDR, SERVER_PORT);
-	        }
+		// send a message to server.
+		err = netconn_send(gpUdpClientConn, sendBuf);
+		if (err != ERR_OK) {
+			xil_printf("Failed to send UDP packet: %d\r\n", err);
+		} else {
+			xil_printf("Sent UDP packet to %s:%d\r\n", SERVER_IP_ADDR, SERVER_PORT);
+		}
 
-	        netbuf_delete(sendBuf);
-	        vTaskDelay(100);
-	    }
+		netbuf_delete(sendBuf);
+		vTaskDelay(100);
+	}
 }
 
 void initTaskMain( void *pvParameters )
