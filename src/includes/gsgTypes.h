@@ -106,4 +106,10 @@ typedef struct _tTelemetryData
 } tTelemetryData;
 #pragma pack(pop)
 
+/*
+ * [Receive Payload]
+ */
+typedef tDVector3 tAcbRecvPayload;
+typedef uint32_t tEchoPayload;
+
 #endif
