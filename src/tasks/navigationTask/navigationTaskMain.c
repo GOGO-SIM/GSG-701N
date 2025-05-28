@@ -9,41 +9,10 @@
 #include <string.h>
 #include "lwip/sockets.h"
 #include "task.h"
-
-#include <math.h>
-
-#define UDP_ECHO_PORT    1234
-#define RECV_BUF_SIZE 2048
-
-#define PN_GAIN   2.0       /* N */
-#define MISSILE_V 10.0      /* V_m (m/s) : 고정속도 가정 */
-#define INV_MISSILE_V    (1.0 / MISSILE_V)
-
-#define KP_OMEGA  0.5
-#define KD_OMEGA  0.25
-
-#define MAX_ALPHA_CMD    5.0
+#include "gncUtil.h"
 
 tDVector3 gForward;
 static TickType_t sPrevTick;
-
-static tDVector4 quatMultiply(const tDVector4 a, const tDVector4 b)
-{
-    tDVector4 r;
-    r.w = a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z;
-    r.x = a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y;
-    r.y = a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x;
-    r.z = a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w;
-    return r;
-}
-
-
-static void normalizeQuat(tDVector4 *q)
-{
-    double n = sqrt(q->w*q->w + q->x*q->x + q->y*q->y + q->z*q->z);
-    q->w /= n;  q->x /= n;
-    q->y /= n;  q->z /= n;
-}
 
 static void navigationRun()
 {
