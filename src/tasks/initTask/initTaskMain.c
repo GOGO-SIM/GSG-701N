@@ -52,19 +52,29 @@ SemaphoreHandle_t xLinkReadySem = NULL;
 static void tcpipInitDone(void *arg);
 void testUdp(void *pvParameters);
 
-// UART 초기화
-int initUartPs(void)
+int initUartPs()
 {
-    XUartPs_Config *cfg = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
-    if (!cfg) {
-        xil_printf("UART config lookup failed\r\n");
-        return XST_FAILURE;
+    // UART 설정 정보 구조체 포인터
+
+    int Status;
+
+    // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
+    // BaseAddress, BaudRate 등 하드웨어 정보 포함
+    gUartConfig = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
+    if (gUartConfig == NULL)
+    {
+       xil_printf("Config is NULL\n");
+       return XST_FAILURE;
     }
-    if (XUartPs_CfgInitialize(&gUartPs, cfg, cfg->BaseAddress) != XST_SUCCESS) {
-        xil_printf("UART CfgInitialize failed\r\n");
-        return XST_FAILURE;
-    }
+    Status = XUartPs_CfgInitialize(&gUartPs, gUartConfig, gUartConfig->BaseAddress);
+    if (Status != XST_SUCCESS)
+    {
+       xil_printf("State is FAIL\n");
+       return XST_FAILURE;
+      }
+    // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
     XUartPs_SetBaudRate(&gUartPs, UART_BAUD);
+
     return XST_SUCCESS;
 }
 
