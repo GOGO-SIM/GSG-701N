@@ -25,8 +25,8 @@ static XGpioPs_Config *sGpioConfig;
 
     xil_printf("BOOM!\r\n");
 
-    while (1) {
-
+    while (1) 
+    {
         XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_ON);
         //xil_printf("ON!\r\n");
         usleep(500000);
