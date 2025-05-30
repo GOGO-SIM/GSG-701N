@@ -91,6 +91,7 @@ extern TaskHandle_t	xUartSendTaskHandle;
 extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
 extern TaskHandle_t xPbitFailTaskHandle;
+extern TaskHandle_t xExplodeTaskHandle;
 
 /* enum 클래스 정의 */
 enum eGcuStatus
