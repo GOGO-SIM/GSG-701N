@@ -26,7 +26,7 @@ static void navigationRun()
 
 	dt = (double)tickDiff * portTICK_PERIOD_MS * 1e-3;
 	dt_ms= tickDiff * portTICK_PERIOD_MS;
-	xil_printf("dt = %u ms\n", dt_ms);
+	// xil_printf("dt = %u ms\r\n", dt_ms);
 
     // IMU 데이터 읽기
     tImuData imu = gImuData;
@@ -53,10 +53,11 @@ static void navigationRun()
 
 	// 전역 변수에 갱신
 	gAttitude = q;
+	// printf("quternion = [%.6f, %.6f, %.6f, %.6f]\r\n", gAttitude.w, gAttitude.x, gAttitude.y, gAttitude.z);
+	gForward = rotateVectorByQuat(q, (tDVector3){1.0, 0.0, 0.0});
+	// printf("forward = [%.6f, %.6f, %.6f]\r\n",
+	// 				 gForward.x, gForward.y, gForward.z);
 
-	normalizeQuat(&gAttitude);
-	// 디버깅 용
-	//gForward = rotateVectorByQuat(q, (tDVector3){1.0, 0.0, 0.0});
 }
 
 void navigationTaskMain( void *pvParameters )
