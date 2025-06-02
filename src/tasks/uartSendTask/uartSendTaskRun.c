@@ -1,9 +1,8 @@
 #include "uartSendTaskRun.h"
 
-
 void runUartSend()
 {
-	//tGsmpMsg uartSendMsg;
+	tGsmpMsg uartSendMsg;
 	// 1. gIsUartReceive가 True인지 확인한다.
 	if(gRecvFlag == FALSE)
 	{
@@ -19,17 +18,8 @@ void runUartSend()
 	gRecvFlag = FALSE;
 
 	tAcbPayload acbSendPayload;
-	acbSendPayload.canadCmd = gControlCmd;
+	acbSendPayload.canadCmd = gAngAccelCmd;
 	acbSendPayload.currentStatus = gModeStatus;
-
-#ifdef TEST
-	gControlCmd.x = 1.02;
-	gControlCmd.y = 3.04;
-	gControlCmd.z = 5.06;
-	// example tAcbPayload
-	acbSendPayload.canadCmd = gControlCmd;
-	acbSendPayload.currentStatus = ENGAGE;
-#endif
 	gsmpWrapper(ACB_SEND_MSG_ID, OK, &acbSendPayload);
 	// 전송을 수행한다.
 	sendUartData();
