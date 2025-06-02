@@ -12,6 +12,8 @@ static void controlRun()
 {
 	now = xTaskGetTickCount();
 	dt = (now - lastTick) * portTICK_PERIOD_MS * 1e-3;
+	if (dt < 1e-6)
+		dt = 1e-6;
 	lastTick = now;
 	tDVector3 a_body = gAccCmd;
 	/* Body 가속도 → 목표 각속도 (omega_cmd) */
@@ -54,6 +56,9 @@ static void controlRun()
 
 	/* 7) 전역 출력 */
 	gAngAccelCmd = alpha_cmd;
+	// printf("w_cmd=[% .4f,% .4f,% .4f]\r\nacc_cmd=[% .4f,% .4f,% .4f]\r\n",
+	// 				 omega_cmd.x, omega_cmd.y, omega_cmd.z,
+	// 				 alpha_cmd.x, alpha_cmd.y, alpha_cmd.z);
 }
 
 void controlTaskMain(void *pvParameters)
