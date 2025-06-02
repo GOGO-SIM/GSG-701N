@@ -7,14 +7,14 @@
 #define UDP_ECHO_PORT    1234
 #define RECV_BUF_SIZE 2048
 
-#define PN_GAIN   2.0       /* N */
-#define MISSILE_V 10.0      /* V_m (m/s) : 고정속도 가정 */
+#define PN_GAIN   4.0       /* N */
+#define MISSILE_V 100.0      /* V_m (m/s) : 고정속도 가정 */
 #define INV_MISSILE_V    (1.0 / MISSILE_V)
 
-#define KP_OMEGA  0.5
+#define KP_OMEGA  0.6
 #define KD_OMEGA  0.25
 
-#define MAX_ALPHA_CMD    5.0
+#define MAX_ALPHA_CMD    7.0
 
 tDVector4 quatMultiply(const tDVector4 a, const tDVector4 b);
 

@@ -44,17 +44,17 @@ void handleImuMsg(tGsmpMsg* msg)
 	}
 	else
 	{
-
 		gFailCount[IMU_DATA_FAIL] = 0;
 		// 3. save valid IMU data
 		gImuData = gImuPayload;
-		xil_printf("[IMU data] x:%f y:%f || z:%f x:%f y:%f z:%f\r\n",
-				gImuData.acc.x,
-				gImuData.acc.y,
-				gImuData.acc.z,
-				gImuData.gyro.x,
-				gImuData.gyro.y,
-				gImuData.gyro.z);
+
+		// printf("\t[IMU data] x:%f y:%f z:%f || x:%f y:%f z:%f\r\n",
+		// 		gImuData.acc.x,
+		// 		gImuData.acc.y,
+		// 		gImuData.acc.z,
+		// 		gImuData.gyro.x,
+		// 		gImuData.gyro.y,
+		// 		gImuData.gyro.z);
 	}
 }
 
@@ -74,11 +74,12 @@ void handleSeekerMsg(tGsmpMsg* msg)
 		gFailCount[SEEKER_DATA_FAIL] = 0;
 		// 3. save valid Seeker data
 		gSeekerData = gSeekerPayload;
-		xil_printf("[Seeker data] x:%f y:%f z:%f dist:%f\r\n",
-				gSeekerData.los.x,
-				gSeekerData.los.y,
-				gSeekerData.los.z,
-				gSeekerData.distance);
+
+		// printf("\t[Seeker data] x:%f y:%f z:%f dist:%f\r\n",
+		// 		gSeekerData.los.x,
+		// 		gSeekerData.los.y,
+		// 		gSeekerData.los.z,
+		// 		gSeekerData.distance);
 	}
 }
 
@@ -102,13 +103,13 @@ static void udpReceiveRun()
 		netbuf_data(recvBuf, &udpBuffer, &len);
 		if (err == ERR_WOULDBLOCK)
 		{
+			// xil_printf("there is no more data\r\n");
 			break ;
 		}
 		// 2. check crc
 		else if (err != ERR_OK || checkCrc(udpBuffer) == FALSE)
 		{
-			if (err == ERR_OK)
-				xil_printf("CRC Error\r\n");
+			// xil_printf("something went wrong, it might be CRC Error\r\n");
 			gFailCount[UDP_FAIL] += 1;
 			if (gFailCount[UDP_FAIL] > 10)
 			{
@@ -135,6 +136,7 @@ static void udpReceiveRun()
 				handleEchoMsg(&msg);
 			}
 		}
+		netbuf_delete(recvBuf);
 	}
 }
 
