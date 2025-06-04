@@ -167,4 +167,7 @@ extern tEchoPayload gEchoPayload;
 extern tImuPayload gImuPayload;
 extern tSeekerPayload gSeekerPayload;
 
+/* GNC */
+extern tDVector3 gAngAccelCmd;
+
 #endif
