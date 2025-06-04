@@ -15,22 +15,22 @@ void gsmpUnwrapper(uint8_t* buffer, tGsmpMsg* msg)
 	{
 		case IMU_MSG_ID:
 		{
-			memcpy(&gImuPayload, buffer, sizeof(tImuPayload));
+			memcpy(&gImuPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tImuPayload));
 			break;
 		}
 		case SEEKER_MSG_ID:
 		{
-			memcpy(&gSeekerPayload, buffer, sizeof(tSeekerPayload));
+			memcpy(&gSeekerPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tSeekerPayload));
 			break;
 		}
 		case ACB_RECV_MSG_ID:
 		{
-			memcpy(&gAcbRecvPayload, buffer, sizeof(tAcbRecvPayload));
+			memcpy(&gAcbRecvPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tAcbRecvPayload));
 			break;
 		}
 		case ACB_ECHO_RECV_MSG_ID:
 		{
-			memcpy(&gEchoPayload, buffer, sizeof(tEchoPayload));
+			memcpy(&gEchoPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tEchoPayload));
 			break;
 		}
 		default :

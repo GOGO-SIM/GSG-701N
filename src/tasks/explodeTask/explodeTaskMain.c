@@ -44,9 +44,8 @@ const static int EXPLODE_TASK_PRIO = 24;
 
 	xil_printf("BOOM!\r\n");
 
-    while (1)
+    while (1) 
     {
-
         XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_ON);
         //xil_printf("ON!\r\n");
         usleep(500000);
