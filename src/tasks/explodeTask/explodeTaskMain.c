@@ -31,18 +31,18 @@ const static int EXPLODE_TASK_PRIO = 24;
 
     //-------------------------------------------
 
-	taskENTER_CRITICAL();
+    taskENTER_CRITICAL();
 
-	vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
-	xTaskNotifyGive(xUartSendTaskHandle);
-	vTaskDelay(pdMS_TO_TICKS(100));
-	vTaskPrioritySet(xUartSendTaskHandle, UART_SEND_TASK_PRIO);
+    vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
+    xTaskNotifyGive(xUartSendTaskHandle);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskPrioritySet(xUartSendTaskHandle, UART_SEND_TASK_PRIO);
 
-	taskEXIT_CRITICAL();
+    taskEXIT_CRITICAL();
 
-	//-------------------------------------------
+    //-------------------------------------------
 
-	xil_printf("BOOM!\r\n");
+    xil_printf("BOOM!\r\n");
 
     while (1) 
     {
