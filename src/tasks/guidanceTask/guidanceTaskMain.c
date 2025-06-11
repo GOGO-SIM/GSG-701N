@@ -47,7 +47,7 @@ static void guidanceRun()
 	tDVector3 a_body = rotateVectorByQuat(quatConjugate(gAttitude), a_cmd);
 
 	/* (6) (미사일Body 기준) 횡 가속도 명령 */
-	gAccCmd = a_body;
+	gAccCmd = a_cmd;
 }
 
 void guidanceTaskMain(void *pvParameters)

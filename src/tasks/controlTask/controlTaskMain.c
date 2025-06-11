@@ -15,7 +15,8 @@ static void controlRun()
 	if (dt < 1e-6)
 		dt = 1e-6;
 	lastTick = now;
-	tDVector3 a_body = gAccCmd;
+
+	tDVector3 a_body = rotateVectorByQuat(quatConjugate(gAttitude), a_cmd);
 	/* Body 가속도 → 목표 각속도 (omega_cmd) */
 	tDVector3 omega_cmd =
 	{
