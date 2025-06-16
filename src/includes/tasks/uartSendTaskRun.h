@@ -10,7 +10,7 @@
 #include "gsmpWrapper.h"
 
 // blocking 무효화
-#define xil_printf(...)  do {} while(0)
+//#define xil_printf(...)  do {} while(0)
 
 // This typedef contains configuration information for the device.
 void runUartSend();

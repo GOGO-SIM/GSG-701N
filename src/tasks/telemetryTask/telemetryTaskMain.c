@@ -3,6 +3,7 @@
 #include "gsmpWrapper.h"
 #include "lwip/err.h"
 #include "lwip/api.h"
+#include "xtime_l.h"
 
 #define ACB_ERROR_POS 1
 #define SEEKER_ERROR_POS 2
@@ -27,17 +28,22 @@ static void writeFlag()
 
      if(gFailCount[UART_FAIL] != FALSE)
      {
+    	 // ACB_ERROR_POS = 1
         sTaskStatusFlags |= ( TRUE << ACB_ERROR_POS );
      }
      if(gFailCount[IMU_DATA_FAIL] != FALSE)
      {
+    	 // SEEKER_ERROR_POS = 2
         sTaskStatusFlags |= ( TRUE << SEEKER_ERROR_POS );
      }
      if(gFailCount[SEEKER_DATA_FAIL] != FALSE)
      {
+    	 // IMU_ERROR_POS = 3
         sTaskStatusFlags |= ( TRUE << IMU_ERROR_POS );
      }
+     // CBIT_ERROR_POS = 1
      sTaskStatusFlags |= ( !gPassCbitFlag << CBIT_ERROR_POS );
+     // PBIT_ERROR_POS = 1
      sTaskStatusFlags |= ( !gPassPbitFlag << PBIT_ERROR_POS );
  }
 
@@ -69,7 +75,7 @@ static void writeFlag()
      }
      else
      {
-        xil_printf("\nSent Tele UDP packet to %s:%d\r\n\n", TELEMETRY_IP, TELEMETRY_PORT);
+        //xil_printf("\nSent Tele UDP packet to %s:%d\r\n\n", TELEMETRY_IP, TELEMETRY_PORT);
      }
      netbuf_delete(teleSendBuf);
  }
@@ -89,7 +95,18 @@ static void writeFlag()
      for(;;)
      {
        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+       //xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+
+       XTime start, end;
+       XTime_GetTime(&start);  // 시작 시간 기록
        runTelemetry();
+       XTime_GetTime(&end);    // 종료 시간 기록
+       // 시간 차이 계산 (us 단위)
+       uint64_t elapsed_ticks = end - start;
+       uint64_t elapsed_us = elapsed_ticks / (COUNTS_PER_SECOND / 1000000);
+
+       xil_printf("Telemetry: %llu\r\n", elapsed_ticks);
+
+
      }
  }

@@ -43,28 +43,28 @@ static void checkPower()
       gPassPbitFlag = FALSE;
    }
    printf("| 0.97V < %.3lfV < 1.03V | PassFlag: %u |\n",gVoltageInt,gPassPbitFlag);
-   delay_ms(1000);
+   //delay_ms(1000);
 
    if ( gVoltageBram < 0.97 || gVoltageBram > 1.03 )
    {
       gPassPbitFlag = FALSE;
    }
    printf("| 0.97V < %.3lfV < 1.03V | PassFlag: %u |\n",gVoltageBram,gPassPbitFlag);
-   delay_ms(1000);
+   //delay_ms(1000);
 
    if ( gVoltageAux < 1.7 || gVoltageAux > 1.88 )
    {
 	  gPassPbitFlag = FALSE;
    }
    printf("| 1.70V < %.3lfV < 1.88V | PassFlag: %u |\n",gVoltageAux,gPassPbitFlag);
-   delay_ms(1000);
+   //delay_ms(1000);
 
    if ( gCelcius >  90 )
    {
       gPassPbitFlag = FALSE;
    }
    printf("| %.3lf'C < 90'C | PassFlag: %u |\n",gCelcius,gPassPbitFlag);
-   delay_ms(1000);
+   //delay_ms(1000);
 
    if(gPassPbitFlag == TRUE)
    {
@@ -136,7 +136,7 @@ static void checkUartRegister()
 	   {
 		   xil_printf(" Uart Parity Error Not Occured.\r\n\n");
 	   }
-	   delay_ms(500);
+	   //delay_ms(500);
 	   if (sUartStatus & XUARTPS_IXR_FRAMING)
 	   {
 		   gPassPbitFlag = FALSE; // Uart 프레이밍 에러 Set
@@ -145,7 +145,7 @@ static void checkUartRegister()
 	   {
 		   xil_printf(" Uart Framing Error Not Occured.\r\n\n");
 	   }
-	   delay_ms(500);
+	   //delay_ms(500);
 	   if (sUartStatus & XUARTPS_IXR_OVER)
 	   {
 		   gPassPbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
@@ -154,7 +154,7 @@ static void checkUartRegister()
 	   {
 	 	   xil_printf(" Uart Overrun Error Not Occured.\r\n\n");
 	   }
-	   delay_ms(500);
+	   //delay_ms(500);
 
 	   //디버깅용------------
 	   if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
@@ -195,13 +195,13 @@ static void checkNetwork()
 static void runPbit(void)
 {
 	xil_printf(" || GSG-701N PowerON Built In Test ||\r\n\n");
-    delay_ms(1000);
+    //delay_ms(1000);
     checkPower();
-    delay_ms(1000);
+    delay_ms(100);
     checkUart();
-    delay_ms(1000);
+    //delay_ms(1000);
     checkNetwork();
-    delay_ms(1000);
+    //delay_ms(1000);
 }
 
 void pbitTaskMain( void *pvParameters )

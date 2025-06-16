@@ -66,6 +66,6 @@ void runUartReceive()
 
 void explode()
 {
-	printf("explode\r\n");
+	//printf("explode\r\n");
 	return ;
 }

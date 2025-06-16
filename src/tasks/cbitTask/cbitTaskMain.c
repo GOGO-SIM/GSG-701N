@@ -1,5 +1,6 @@
 #include "global.h"
 #include "gsgTypes.h"
+#include "xtime_l.h"
 
 #define XUARTPS_SR_OFFSET   0x14U
 
@@ -92,10 +93,10 @@ static void checkUart()
       gPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
    }
    //디버깅용------------
-   if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
-   {
-      printf("Uart Passed | ");
-   }
+//   if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
+//   {
+//      printf("Uart Passed | ");
+//   }
    //디버깅용------------
    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
 }
@@ -113,11 +114,11 @@ static void checkMemory()
       gPassCbitFlag = FALSE;
    }
    //디버깅용------------
-   if (!(sOcmStatus & (OCM_SINGLE_ERR|OCM_MULTI_ERR)))
-   {
-        printf("Memory Passed | ");
-   }
-   //디버깅용------------
+//   if (!(sOcmStatus & (OCM_SINGLE_ERR|OCM_MULTI_ERR)))
+//   {
+//        printf("Memory Passed | ");
+//   }
+//   //디버깅용------------
    Xil_Out32(OCM_IRQ_STS_ADDR, sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR)); //Error Reset
 }
 
@@ -125,17 +126,17 @@ static void checkEthernet()
 {
    XEmacPs_PhyRead(&gXemacPsInst, PHY_ADDR,PHY_BASIC_STATUS,&sEthernetStatus);
 
-   if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
-   {
-      printf("Ethernet Failed | ");
-      gPassCbitFlag = FALSE;
-   }
-   //디버깅용------------
-   else
-   {
-      printf("Ethernet Passed | "); // 디버깅용
-   }
-   //디버깅용------------
+//   if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
+//   {
+//      printf("Ethernet Failed | ");
+//      gPassCbitFlag = FALSE;
+//   }
+//   //디버깅용------------
+//   else
+//   {
+//      printf("Ethernet Passed | "); // 디버깅용
+//   }
+//   //디버깅용------------
 }
 
 static void checkRegister()
@@ -171,7 +172,7 @@ static void runCbit(void)
    }
    gPassCbitFlag = TRUE;
    //디버깅용------------
-   debug(sErrorCount);
+   //debug(sErrorCount);
    //디버깅용------------
 }
 
@@ -180,8 +181,15 @@ void cbitTaskMain( void *pvParameters )
     for(;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-      runCbit();
+        //xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+        XTime start, end;
+        XTime_GetTime(&start);  // 시작 시간 기록
+        runCbit();
+        XTime_GetTime(&end);    // 종료 시간 기록
+        // 시간 차이 계산 (us 단위)
+        uint64_t elapsed_ticks = end - start;
+        uint64_t elapsed_us = elapsed_ticks / (COUNTS_PER_SECOND / 1000000);
+        //xil_printf("start: %llu, end: %llu, elapsed: %llu ticks\n", start, end, elapsed_ticks);
+        xil_printf("UartSend: %llu\r\n", elapsed_ticks);
     }
 }
