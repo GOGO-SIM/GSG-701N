@@ -16,9 +16,9 @@ const static int PBIT_TASK_PRIO = 27;
 const static int UDP_RECEIVE_TASK_PRIO = 15;
 const static int UART_RECEIVE_TASK_PRIO = 11;
 
-const static int UDP_RECEIVE_DEADLINE = 1000;
-const static int UART_SEND_DEADLINE = 1000;
-const static int UART_RECV_DEADLINE = 1000;
+const static int UDP_RECEIVE_DEADLINE = 50;
+const static int UART_SEND_DEADLINE = 50;
+const static int UART_RECV_DEADLINE = 50;
 
 static void delay_ms(u32 ms)
 {
@@ -108,7 +108,7 @@ static void checkUartLoopback()
 	//디버깅용 -------------
 	printf(" Uart Loopback Transmitted : %d\r\n\n",atoi(transmitBuffer));
 
-	delay_ms(1000);
+	delay_ms(50);
 
 	printf(" Uart Loopback Recieved : %d\r\n\n",atoi(recieveBuffer));
 	//디버깅용 -------------
@@ -221,13 +221,13 @@ static void checkNetwork()
 static void runPbit(void)
 {
 	xil_printf(" || GSG-701N PowerON Built In Test ||\r\n\n");
-    delay_ms(1000);
+    delay_ms(50);
     checkPower();
-    delay_ms(1000);
+    delay_ms(50);
     checkUart();
-    delay_ms(1000);
+    delay_ms(50);
     checkNetwork();
-    delay_ms(1000);
+    delay_ms(50);
 }
 
 void pbitTaskMain( void *pvParameters )

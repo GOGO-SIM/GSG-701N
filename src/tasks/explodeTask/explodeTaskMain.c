@@ -15,8 +15,8 @@ static XGpioPs_Config *sGpioConfig;
 const static int UART_SEND_TASK_PRIO = 19;
 const static int EXPLODE_TASK_PRIO = 24;
 
- void explodeTaskMain(void *param)
- {
+void explodeTaskMain(void *param)
+{
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
     vTaskSuspend(xUdpReceiveTaskHandle);
@@ -42,19 +42,19 @@ const static int EXPLODE_TASK_PRIO = 24;
 
     //-------------------------------------------
 
-	   vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
-	   xTaskNotifyGive(xUartSendTaskHandle);
-	   vTaskDelay(pdMS_TO_TICKS(100));
-	   vTaskSuspend(xUdpReceiveTaskHandle);
+   vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
+   xTaskNotifyGive(xUartSendTaskHandle);
+   vTaskDelay(pdMS_TO_TICKS(100));
+   vTaskSuspend(xUdpReceiveTaskHandle);
 
-	   //-------------------------------------------
+   //-------------------------------------------
 
-	   while(1)
-	   {
-		    XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_ON);
-		    usleep(200000);
-		    XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_OFF);
-		    usleep(200000);
+   while(1)
+   {
+		XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_ON);
+		usleep(200000);
+		XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_OFF);
+		usleep(200000);
+   }
 
-	   }
  }
