@@ -8,8 +8,10 @@
 /**
  * [우선순위]
  */
+
 const static int INIT_TASK_PRIO = 28;
 const static int PBIT_TASK_PRIO = 27;
+const static int EXPLODE_TASK_PRIO = 24;
 const static int STANBY_IGNITION_TASK_PRIO = 24;
 const static int PBIT_FAIL_TASK_PRIO = 24;
 const static int UART_RECEIVE_TASK_PRIO = 11;
@@ -54,6 +56,7 @@ void USER_THREADS( void )
  * 11. cbit Task 생성
  * 12. telemetry Task 생성
  * 13. pbit fail task 생성
+ * 14. Explode task 생성
  */
 
 static void createAllTask(void)
@@ -268,7 +271,27 @@ static void createAllTask(void)
 	{
 		xil_printf("----- FAILED CREATING Task------\r\n");
 	}
+
+//	 * 13. explode Task 생성
+	xil_printf("----- TRY CREATE Explode Task------\r\n");
+	xReturned = xTaskCreate(	(TaskFunction_t)explodeTaskMain,
+					"Explode Task",
+					256,
+					NULL,
+					EXPLODE_TASK_PRIO,
+					&xExplodeTaskHandle);
+	if (xReturned == pdPASS)
+	{
+		xil_printf("----- CREATED Task------\r\n");
+	}
+	else
+	{
+		xil_printf("----- FAILED CREATING Task------\r\n");
+	}
 }
+
+
+
 
 void taskMain(void *pvParameters)
 {

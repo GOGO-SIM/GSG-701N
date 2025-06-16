@@ -12,6 +12,14 @@ static u16 sRawTemperture;
 static u16 sTimeOut;
 static u32 sUartStatus;
 
+const static int PBIT_TASK_PRIO = 27;
+const static int UDP_RECEIVE_TASK_PRIO = 15;
+const static int UART_RECEIVE_TASK_PRIO = 11;
+
+const static int UDP_RECEIVE_DEADLINE = 1000;
+const static int UART_SEND_DEADLINE = 1000;
+const static int UART_RECV_DEADLINE = 1000;
+
 static void delay_ms(u32 ms)
 {
     TickType_t start = xTaskGetTickCount();
@@ -43,28 +51,24 @@ static void checkPower()
       gPassPbitFlag = FALSE;
    }
    printf("| 0.97V < %.3lfV < 1.03V | PassFlag: %u |\n",gVoltageInt,gPassPbitFlag);
-   delay_ms(1000);
 
    if ( gVoltageBram < 0.97 || gVoltageBram > 1.03 )
    {
       gPassPbitFlag = FALSE;
    }
    printf("| 0.97V < %.3lfV < 1.03V | PassFlag: %u |\n",gVoltageBram,gPassPbitFlag);
-   delay_ms(1000);
 
    if ( gVoltageAux < 1.7 || gVoltageAux > 1.88 )
    {
 	  gPassPbitFlag = FALSE;
    }
    printf("| 1.70V < %.3lfV < 1.88V | PassFlag: %u |\n",gVoltageAux,gPassPbitFlag);
-   delay_ms(1000);
 
    if ( gCelcius >  90 )
    {
       gPassPbitFlag = FALSE;
    }
    printf("| %.3lf'C < 90'C | PassFlag: %u |\n",gCelcius,gPassPbitFlag);
-   delay_ms(1000);
 
    if(gPassPbitFlag == TRUE)
    {
@@ -126,43 +130,39 @@ static void checkUartLoopback()
 
 static void checkUartRegister()
 {
-	   sUartStatus = XUartPs_ReadReg(gUartConfig->BaseAddress,XUARTPS_ISR_OFFSET);
+    sUartStatus = XUartPs_ReadReg(gUartConfig->BaseAddress,XUARTPS_ISR_OFFSET);
 
-	   if (sUartStatus & XUARTPS_IXR_PARITY)
-	   {
-		   gPassPbitFlag = FALSE; // Uart 패리티 에러 Set
-	   }
-	   else
-	   {
-		   xil_printf(" Uart Parity Error Not Occured.\r\n\n");
-	   }
-	   delay_ms(500);
-	   if (sUartStatus & XUARTPS_IXR_FRAMING)
-	   {
-		   gPassPbitFlag = FALSE; // Uart 프레이밍 에러 Set
-	   }
-	   else
-	   {
-		   xil_printf(" Uart Framing Error Not Occured.\r\n\n");
-	   }
-	   delay_ms(500);
-	   if (sUartStatus & XUARTPS_IXR_OVER)
-	   {
-		   gPassPbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
-	   }
-	   else
-	   {
-	 	   xil_printf(" Uart Overrun Error Not Occured.\r\n\n");
-	   }
-	   delay_ms(500);
-
-	   //디버깅용------------
-	   if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
-	   {
-		   xil_printf(" GSG-701N / [PBIT] : Uart Register Check Passed\r\n\n");
-	   }
-	   //디버깅용------------
-	   XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
+    if (sUartStatus & XUARTPS_IXR_PARITY)
+    {
+	   gPassPbitFlag = FALSE; // Uart 패리티 에러 Set
+    }
+    else
+    {
+	   xil_printf(" Uart Parity Error Not Occured.\r\n\n");
+    }
+    if (sUartStatus & XUARTPS_IXR_FRAMING)
+    {
+	   gPassPbitFlag = FALSE; // Uart 프레이밍 에러 Set
+    }
+    else
+    {
+	   xil_printf(" Uart Framing Error Not Occured.\r\n\n");
+    }
+    if (sUartStatus & XUARTPS_IXR_OVER)
+    {
+	   gPassPbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
+    }
+    else
+    {
+	   xil_printf(" Uart Overrun Error Not Occured.\r\n\n");
+    }
+    //디버깅용------------
+    if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
+    {
+	   xil_printf(" GSG-701N / [PBIT] : Uart Register Check Passed\r\n\n");
+    }
+    //디버깅용------------
+    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
 }
 
 static void checkUart()
@@ -173,19 +173,45 @@ static void checkUart()
 
 static void checkNetwork()
 {
+	// UDP Receive
+
+	taskENTER_CRITICAL();
+
+	vTaskPrioritySet(xUdpReceiveTaskHandle, PBIT_TASK_PRIO);
+	xTaskNotifyGive(xUdpReceiveTaskHandle);
+	vTaskDelay(pdMS_TO_TICKS(UDP_RECEIVE_DEADLINE));
+	vTaskPrioritySet(xUdpReceiveTaskHandle, UDP_RECEIVE_TASK_PRIO);
+
+	taskEXIT_CRITICAL();
+
+	// UART Receive
+
+	taskENTER_CRITICAL();
+
+	vTaskPrioritySet(xUartReceiveTaskHandle, PBIT_TASK_PRIO);
+	xTaskNotifyGive(xUartReceiveTaskHandle);
+	vTaskDelay(pdMS_TO_TICKS(UART_RECV_DEADLINE));
+	vTaskPrioritySet(xUartReceiveTaskHandle, UART_RECEIVE_TASK_PRIO);
+
+	printf("\n");
+
+	taskEXIT_CRITICAL();
+
+	// Seeker Check
+
 	xil_printf(" Check for Seeker Connection\r\n\n");
 
 	// Seeker는 자체적 PBIT을 마치고 지속적으로 GCU에  PBIT정보에 대한 데이터를 보냄
-	// Seeker가 GCU에세 PBIT UDP 실패 정보를 보내거나,데이터가 일정 시간 이내에 값이 도착하지 않으면 (타임아웃) gPassPbitFlag를 False로 전환
+	// Seeker가 GCU에게 PBIT 실패 정보를 보내면, gPassPbitFlag를 False로 전환
 	// Seeker가  GCU에 PBIT 성공 UDP 정보를 보내는 경우, GCU는 Seeker에 에코잉 값 19980398을 보냄
 	// Seeker는 GCU에 19980398을 되돌려줌
 	// GCU는 19980398을 보내고 받은 값이 같은지 확인하고, 같다면 PBIT 통과로 간주
 
+	xil_printf(" Check for IMU Connection\r\n\n");
+
 	xil_printf(" Check for ACB Connection\r\n\n");
 
 	// TBD
-
-	xil_printf(" Check for IMU Connection\r\n\n");
 
 	// IMU는 계속 GCU에 자기가 보내줘야 할 데이터를 보냄
 	// GCU는 값이 일정시간 이내에 값이 도착하지 않는다면 (타임아웃) gPassPbitFlag를 False로 전환

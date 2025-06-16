@@ -91,6 +91,7 @@ extern TaskHandle_t	xUartSendTaskHandle;
 extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
 extern TaskHandle_t xPbitFailTaskHandle;
+extern TaskHandle_t xExplodeTaskHandle;
 
 /* enum 클래스 정의 */
 enum eGcuStatus
@@ -135,7 +136,7 @@ enum eMsgStatus
 {
 	OK = 0,
 	CRC_ERROR = 1,
-	INTERNAL_ERROR = 2,
+	INTERNAL_ERROR = 2
 };
 
 enum eModeStatus
@@ -144,6 +145,7 @@ enum eModeStatus
 	ENGAGE = 1,
 	SAFE = 2,
 	REEXPLORE = 3,
+	EXPLODE = 4
 };
 
 /*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/

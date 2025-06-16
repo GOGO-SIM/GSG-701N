@@ -43,13 +43,14 @@ static void writeFlag()
 
  static void writePayload()
  {
-   sTelemetryPayload.cnt = sframeCount;  // Write Current FrameCount
-   sTelemetryPayload.bitFlags = sTaskStatusFlags; // Write Current StatusFlag;
-   sTelemetryPayload.imuData = gImuData;
-   sTelemetryPayload.seekerData = gSeekerData;
-   sTelemetryPayload.accCmd = gAccCmd;
-   sTelemetryPayload.quarternion = gAttitude;
-   sTelemetryPayload.controlCmd = gAngAccelCmd;
+     sTelemetryPayload.cnt = sframeCount;  // Write Current FrameCount
+     //sTelemetryPayload.status = gGcuStatus;
+     sTelemetryPayload.bitFlags = sTaskStatusFlags; // Write Current StatusFlag;
+     sTelemetryPayload.imuData = gImuData;
+     sTelemetryPayload.seekerData = gSeekerData;
+     sTelemetryPayload.accCmd = gAccCmd;
+     sTelemetryPayload.quarternion = gAttitude;
+     sTelemetryPayload.controlCmd = gControlCmd;
  }
 
  static void sendViaUdp()

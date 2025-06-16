@@ -22,7 +22,8 @@ TaskHandle_t xMainTaskHandle,
 	xUartSendTaskHandle,
 	xCbitTaskHandle,
 	xTelemetryTaskHandle,
-	xPbitFailTaskHandle;
+	xPbitFailTaskHandle,
+	xExplodeTaskHandle;
 
 
 const uint8_t START_FLAG = 0x7E;
@@ -98,12 +99,13 @@ tSeekerPayload gSeekerPayload;
 
 /**
  * gGcuStatus
- * - NORMAL
- * - STANDBY
- * - PBIT_FAILED
- * - CBIT_FAILED
+ * - WAIT
+ * - ENGAGE
+ * - SAFE
+ * - RE-EXPLORATION
  */
-uint32_t gGcuStatus = 0;
+
+uint32_t gGcuStatus = WAIT;
 
 /*=====CBIT&PBIT Standard=====*/
 

@@ -148,12 +148,12 @@ static void checkRegister()
 static void runCbit(void)
 {
    static int sErrorCount = 0;
+   gPassCbitFlag = TRUE;
 
    if(sErrorCount >= 5)
    {
       xil_printf(" CBIT Failed : explode();\n");
-      //vTaskSuspendAll(); //폭발해서 모든 태스크 정지
-      // 5번 연속 에러시 자폭
+      xTaskNotifyGive(xExplodeTaskHandle);
    }
    checkPower();
 
@@ -169,7 +169,6 @@ static void runCbit(void)
    {
       sErrorCount = 0;
    }
-   gPassCbitFlag = TRUE;
    //디버깅용------------
    debug(sErrorCount);
    //디버깅용------------
@@ -179,9 +178,9 @@ void cbitTaskMain( void *pvParameters )
 {
     for(;;)
     {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+      xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
       runCbit();
     }
 }

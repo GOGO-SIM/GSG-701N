@@ -96,6 +96,7 @@ typedef struct _tAccCmd
 typedef struct _tTelemetryData
 {
 	int cnt;
+	//int status;
 	uint8_t bitFlags;
 	tImuData imuData;
 	tSeekerData seekerData;
