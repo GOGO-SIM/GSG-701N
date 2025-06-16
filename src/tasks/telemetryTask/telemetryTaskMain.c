@@ -44,7 +44,7 @@ static void writeFlag()
  static void writePayload()
  {
      sTelemetryPayload.cnt = sframeCount;  // Write Current FrameCount
-     sTelemetryPayload.status = gGcuStatus;
+     //sTelemetryPayload.status = gGcuStatus;
      sTelemetryPayload.bitFlags = sTaskStatusFlags; // Write Current StatusFlag;
      sTelemetryPayload.imuData = gImuData;
      sTelemetryPayload.seekerData = gSeekerData;
