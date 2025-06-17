@@ -13,7 +13,7 @@ void runUartSend()
 	}
 	else
 	{
-		gFailCount[UART_FAIL] = 0;
+		gFailCount[UART_FAIL] = OK;
 	}
 	gRecvFlag = FALSE;
 

@@ -48,7 +48,7 @@ void runUartReceive()
 	gsmpUnwrapper(rxBuffer, &msg);
 	if(msg.header.msgStat == OK)
 	{
-		gFailCount[UART_FAIL] = 0;
+		gFailCount[UART_FAIL] = OK;
 	}
 	else
 	{

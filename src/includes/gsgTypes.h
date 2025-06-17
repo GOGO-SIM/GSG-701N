@@ -78,8 +78,7 @@ typedef struct _tACBPayload
 #pragma pack(push, 1)
 typedef struct _tAcbFeedbackPayload
 {
-	// TODO : 피드백 제어 : TBD
-	int staus;
+	tDVector3 canadCmd;
 } tAcbFeedbackPayload;
 #pragma pack(pop)
 

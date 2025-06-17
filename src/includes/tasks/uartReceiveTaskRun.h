@@ -11,7 +11,7 @@
  * RECEIVE_SIZE 재정의
  * exampleMsg -> recvUartMsg, 전역변수화
  * */
-#define DATA_RECEIVE_SIZE 13
+#define DATA_RECEIVE_SIZE 34
 extern uint8_t rxBuffer[DATA_RECEIVE_SIZE];
 extern tGsmpMsg exampleMsg;
 
