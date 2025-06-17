@@ -1,86 +1,252 @@
-static int sPbitResultFlag;
+#include "global.h"
+#include "gsgTypes.h"
 
-static int checkPower()
+#define ECHOING_VALUE 19980398
+
+// ADC ë³€í™˜ Raw ê°’
+
+static u16 sRawVccInt;
+static u16 sRawVccAux;
+static u16 sRawVccRam;
+static u16 sRawTemperture;
+static u16 sTimeOut;
+static u32 sUartStatus;
+
+const static int PBIT_TASK_PRIO = 27;
+const static int UDP_RECEIVE_TASK_PRIO = 15;
+const static int UART_RECEIVE_TASK_PRIO = 11;
+
+const static int UDP_RECEIVE_DEADLINE = 50;
+const static int UART_SEND_DEADLINE = 50;
+const static int UART_RECV_DEADLINE = 50;
+
+static void delay_ms(u32 ms)
 {
-	sPbitResultFlag |= POWER_ERROR;
+    TickType_t start = xTaskGetTickCount();
+    while ( (xTaskGetTickCount() - start) < pdMS_TO_TICKS(ms) );
 }
 
-static int checkClock()
+static void checkPower()
 {
-	sPbitResultFlag |= CLOCK_ERROR;
+   // ê° ì¸¡ì • ë°ì´í„° Raw ê°’ìœ¼ë¡œ ë°›ì•„ì˜¤ê¸°
+
+   sRawVccInt = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VCCINT);
+   sRawVccAux = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VCCAUX);
+   sRawVccRam = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_VBRAM);
+   sRawTemperture = XSysMon_GetAdcData(&gSysMonInst, XSM_CH_TEMP);
+
+   // Raw ë°ì´í„°ë¥¼ ì‹¤ì œ ì „ì••,ì˜¨ë„ë¡œ ë³€í™˜
+
+   gVoltageInt = XSysMon_RawToVoltage(sRawVccInt);
+   gVoltageBram = XSysMon_RawToVoltage(sRawVccRam);
+   gVoltageAux = XSysMon_RawToVoltage(sRawVccAux);
+   gCelcius = XSysMon_RawToTemperature(sRawTemperture);
+
+   // ë¹„ì •ìƒ ì „ì•• í˜¹ì€ ì˜¨ë„ ê°ì§€ì‹œ gPassPbitFlag Falseë¡œ ì „í™˜
+
+   xil_printf(" GSG-701N / [PBIT] : Check for internal value...\r\n\n");
+
+   if ( gVoltageInt < 0.97 || gVoltageInt > 1.03 )
+   {
+      gPassPbitFlag = FALSE;
+   }
+   printf("| 0.97V < %.3lfV < 1.03V | PassFlag: %u |\n",gVoltageInt,gPassPbitFlag);
+
+   if ( gVoltageBram < 0.97 || gVoltageBram > 1.03 )
+   {
+      gPassPbitFlag = FALSE;
+   }
+   printf("| 0.97V < %.3lfV < 1.03V | PassFlag: %u |\n",gVoltageBram,gPassPbitFlag);
+
+   if ( gVoltageAux < 1.7 || gVoltageAux > 1.88 )
+   {
+	  gPassPbitFlag = FALSE;
+   }
+   printf("| 1.70V < %.3lfV < 1.88V | PassFlag: %u |\n",gVoltageAux,gPassPbitFlag);
+
+   if ( gCelcius >  90 )
+   {
+      gPassPbitFlag = FALSE;
+   }
+   printf("| %.3lf'C < 90'C | PassFlag: %u |\n",gCelcius,gPassPbitFlag);
+
+   if(gPassPbitFlag == TRUE)
+   {
+	   xil_printf("\n GSG-701N / [PBIT] : Power Check Success\r\n\n");
+   }
+   else
+   {
+	   xil_printf("\n GSG-701N / [PBIT] : Power Check Failed\r\n\n");
+   }
 }
 
-static void inspectBoard()
+static void checkUartLoopback()
 {
-	/**
-	 * 1. Àü¾Ğ °Ë»ç
-	 * 2. Å¬·° °Ë»ç
-	 */
-	/*****************************[ÀÓ½Ã ±¸Çö]*****************************/
-	// 1. Àü¾Ğ °Ë»ç
-	if (checkPower())
+	char transmitBuffer[16], recieveBuffer[16];
+	sTimeOut = 100000;
+
+	// ë£¨í”„ë°± ëª¨ë“œë¡œ ë³€ê²½
+	XUartPs_SetOperMode(&gUartPs, XUARTPS_OPER_MODE_LOCAL_LOOP);
+
+	int messageLength = snprintf(transmitBuffer,sizeof(transmitBuffer),"%u\r\n",ECHOING_VALUE);
+
+	// ë°ì´í„° ë³´ë‚´ê¸°
+	XUartPs_Send(&gUartPs, (u8*)transmitBuffer, messageLength);
+
+	// ê°’ì´ ë„ì°©í• ë™ì•ˆ ëŒ€ê¸°
+	while (( (XUartPs_ReadReg(gUartConfig->BaseAddress, XUARTPS_SR_OFFSET) & XUARTPS_SR_RXEMPTY) != 0) && --sTimeOut);
+
+    for (int i = 0; i < messageLength; ++i) {
+        // ë°ì´í„°ê°€ ì˜¤ë©´ 1ë°”ì´íŠ¸ ë¦¬í„´í•´ì„œ ë°›ì•„ì˜¤ê¸°
+        recieveBuffer[i] = XUartPs_RecvByte(gUartConfig->BaseAddress);
+    }
+
+    recieveBuffer[messageLength] = '\0';
+
+	XUartPs_SetOperMode(&gUartPs, XUARTPS_OPER_MODE_NORMAL);
+
+	//ë””ë²„ê¹…ìš© -------------
+	printf(" Uart Loopback Transmitted : %d\r\n\n",atoi(transmitBuffer));
+
+	delay_ms(50);
+
+	printf(" Uart Loopback Recieved : %d\r\n\n",atoi(recieveBuffer));
+	//ë””ë²„ê¹…ìš© -------------
+
+	if(atoi(recieveBuffer) == ECHOING_VALUE)
 	{
-		// 2. Å¬·° °Ë»ç
-		checkClock();
+		//ë””ë²„ê¹…ìš© -------------
+		xil_printf(" GSG-701N / [PBIT] : Uart Internal Loopback Check Passed\r\n\n");
+		//ë””ë²„ê¹…ìš© -------------
 	}
-	return ;
+	else
+	{
+		//ë””ë²„ê¹…ìš© -------------
+		xil_printf(" GSG-701N / [PBIT] : Uart Internal Loopback Check Failed\r\n\n");
+		//ë””ë²„ê¹…ìš© -------------
+		gPassPbitFlag = FALSE;
+	}
+}
+
+static void checkUartRegister()
+{
+    sUartStatus = XUartPs_ReadReg(gUartConfig->BaseAddress,XUARTPS_ISR_OFFSET);
+
+    if (sUartStatus & XUARTPS_IXR_PARITY)
+    {
+	   gPassPbitFlag = FALSE; // Uart íŒ¨ë¦¬í‹° ì—ëŸ¬ Set
+    }
+    else
+    {
+	   xil_printf(" Uart Parity Error Not Occured.\r\n\n");
+    }
+    if (sUartStatus & XUARTPS_IXR_FRAMING)
+    {
+	   gPassPbitFlag = FALSE; // Uart í”„ë ˆì´ë° ì—ëŸ¬ Set
+    }
+    else
+    {
+	   xil_printf(" Uart Framing Error Not Occured.\r\n\n");
+    }
+    if (sUartStatus & XUARTPS_IXR_OVER)
+    {
+	   gPassPbitFlag = FALSE; // Uart ë²„í¼ ì˜¤ë²„ëŸ° ì—ëŸ¬ Set
+    }
+    else
+    {
+	   xil_printf(" Uart Overrun Error Not Occured.\r\n\n");
+    }
+    //ë””ë²„ê¹…ìš©------------
+    if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
+    {
+	   xil_printf(" GSG-701N / [PBIT] : Uart Register Check Passed\r\n\n");
+    }
+    //ë””ë²„ê¹…ìš©------------
+    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
 }
 
 static void checkUart()
 {
-	// 1. physical loopback °Ë»ç
-	// 2. echoing °Ë»ç
+	checkUartLoopback();
+	checkUartRegister();
 }
 
-static void checkTcp()
+static void checkNetwork()
 {
-	// 1. L1 °Ë»ç
-	// 2. L2 °Ë»ç
-	// 3. L3 °Ë»ç
-	// 4. L4 °Ë»ç
-	// 5. echoing °Ë»ç
+	// UDP Receive
+
+	taskENTER_CRITICAL();
+
+	vTaskPrioritySet(xUdpReceiveTaskHandle, PBIT_TASK_PRIO);
+	xTaskNotifyGive(xUdpReceiveTaskHandle);
+	vTaskDelay(pdMS_TO_TICKS(UDP_RECEIVE_DEADLINE));
+	vTaskPrioritySet(xUdpReceiveTaskHandle, UDP_RECEIVE_TASK_PRIO);
+
+	taskEXIT_CRITICAL();
+
+	// UART Receive
+
+	taskENTER_CRITICAL();
+
+	vTaskPrioritySet(xUartReceiveTaskHandle, PBIT_TASK_PRIO);
+	xTaskNotifyGive(xUartReceiveTaskHandle);
+	vTaskDelay(pdMS_TO_TICKS(UART_RECV_DEADLINE));
+	vTaskPrioritySet(xUartReceiveTaskHandle, UART_RECEIVE_TASK_PRIO);
+
+	printf("\n");
+
+	taskEXIT_CRITICAL();
+
+	// Seeker Check
+
+	xil_printf(" Check for Seeker Connection\r\n\n");
+
+	// SeekerëŠ” ìì²´ì  PBITì„ ë§ˆì¹˜ê³  ì§€ì†ì ìœ¼ë¡œ GCUì—  PBITì •ë³´ì— ëŒ€í•œ ë°ì´í„°ë¥¼ ë³´ëƒ„
+	// Seekerê°€ GCUì—ê²Œ PBIT ì‹¤íŒ¨ ì •ë³´ë¥¼ ë³´ë‚´ë©´, gPassPbitFlagë¥¼ Falseë¡œ ì „í™˜
+	// Seekerê°€  GCUì— PBIT ì„±ê³µ UDP ì •ë³´ë¥¼ ë³´ë‚´ëŠ” ê²½ìš°, GCUëŠ” Seekerì— ì—ì½”ì‰ ê°’ 19980398ì„ ë³´ëƒ„
+	// SeekerëŠ” GCUì— 19980398ì„ ë˜ëŒë ¤ì¤Œ
+	// GCUëŠ” 19980398ì„ ë³´ë‚´ê³  ë°›ì€ ê°’ì´ ê°™ì€ì§€ í™•ì¸í•˜ê³ , ê°™ë‹¤ë©´ PBIT í†µê³¼ë¡œ ê°„ì£¼
+
+	xil_printf(" Check for IMU Connection\r\n\n");
+
+	xil_printf(" Check for ACB Connection\r\n\n");
+
+	// TBD
+
+	// IMUëŠ” ê³„ì† GCUì— ìê¸°ê°€ ë³´ë‚´ì¤˜ì•¼ í•  ë°ì´í„°ë¥¼ ë³´ëƒ„
+	// GCUëŠ” ê°’ì´ ì¼ì •ì‹œê°„ ì´ë‚´ì— ê°’ì´ ë„ì°©í•˜ì§€ ì•ŠëŠ”ë‹¤ë©´ (íƒ€ì„ì•„ì›ƒ) gPassPbitFlagë¥¼ Falseë¡œ ì „í™˜
+	// GCUê°€ IMU ê°’ì„ ë°›ì„ ì‹œ, IMUê°’ì´ ìœ íš¨í•œ ê°’ (ê°ì†ë„ ë²”ìœ„ < ABS(1.6)) ì´ë©´ PBIT í†µê³¼ë¡œ ê°„ì£¼
 }
 
-static void inspectNetwork()
+static void runPbit(void)
 {
-	/**
-	 * 1. UART¸¦ °Ë»çÇÑ´Ù. (physical loopback, echoing)
-	 * 2. TCP/IP¿Í UDP/IP¸¦ °Ë»çÇÑ´Ù. (L1, L2, L3, APP)
-	 */
-
-	/*****************************[ÀÓ½Ã ±¸Çö]*****************************/
-	checkUart();
-	checkTcp();
-
+	xil_printf(" || GSG-701N PowerON Built In Test ||\r\n\n");
+    delay_ms(50);
+    checkPower();
+    delay_ms(50);
+    checkUart();
+    delay_ms(50);
+    checkNetwork();
+    delay_ms(50);
 }
 
 void pbitTaskMain( void *pvParameters )
 {
-	/**
-	 * [PBIT °Ë»ç ¼öÇà]
-	 * 1. º¸µå¸¦ °Ë»çÇÑ´Ù.
-	 * 2. ¿¬°áµÈ ±â±âÀÇ ³×Æ®¿öÅ©¸¦ °Ë»çÇÑ´Ù.
-	 * 3. ÅÚ·¹¸ŞÆ®¸® µ¥ÀÌÅÍ »ı¼º
-	 * 4. CBIT°ú stanby, telemetry task¸¦ ±ú¿î´Ù.
-	 * 5. PBIT task¸¦ »èÁ¦ÇÑ´Ù.
-	 */
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	xil_printf("RUN -- %s\r\n\n", pcTaskGetName(NULL));
+	runPbit();
+	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
 
-	/*****************************[ÀÓ½Ã ±¸Çö]*****************************/
-	// 1. º¸µå¸¦ °Ë»çÇÑ´Ù.
-	inspectBoard();
-	if (sPbitResultFlag == false)
+	if(gPassPbitFlag == TRUE)
 	{
-		// 2. ¿¬°áµÈ ±â±âÀÇ ³×Æ®¿öÅ©¸¦ °Ë»çÇÑ´Ù.
-		inspectNetwork();
+		xil_printf("\n GSG-701N / [PBIT] : PBIT Success\r\n\n");
+		xTaskNotifyGive(xStanbyIgnitionTaskHandle);
 	}
-
-	// 3. ÅÚ·¹¸ŞÆ®¸® µ¥ÀÌÅÍ »ı¼º
-	// pushPbitDataIntoQueue(sPbitResultFlag)
-
-	// 4. CBIT°ú stanby task¸¦ ±ú¿î´Ù.
-	// xTaskResume(xHandleCbit);
-	// xTaskResume(xHandleStanby);
-
-	// 5. pbit task¸¦ »èÁ¦ÇÑ´Ù.
-	// xTaskDelete(xHandlePbit);
+	else if(gPassPbitFlag == FALSE)
+	{
+	    xil_printf("\n GSG-701N / [PBIT] : PBIT Failed\r\n\n");
+	    xTaskNotifyGive(xPbitFailTaskHandle);
+	}
+	xTaskNotifyGive(xSchedulingTaskHandle);
+	vTaskDelete(NULL);
 }

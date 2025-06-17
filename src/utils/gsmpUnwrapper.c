@@ -1,18 +1,42 @@
+#include "gsmpUnwrapper.h"
 /*
  * void gsmpUnwrapper(void* recvByte)
- * GSMP(GoSim Message Protocol)ÀÇ ¼ö½ÅÀ» Áö¿øÇÑ´Ù.
- * return : dataPayload ¹ÝÈ¯
- *
+ * GSMP(GoSim Message Protocol) í•´ì„ í•¨ìˆ˜.
+ * ë©”ì‹œì§€ íƒ€ìž…ì— ë”°ë¼ì„œ ê° payloadì˜ ì „ì—­ ë³€ìˆ˜ì— ê°’ì´ ì„¸íŒ… ëœë‹¤.
+ * TODO: void ë°˜í™˜ì—ì„œ íŠ¹ì • ë©”ì‹œì§€ë¥¼ ë°˜í™˜í•  ìˆ˜ ìžˆë„ë¡ ë§Œë“¤ê¸°
  **/
-void* gsmpUnWrapper(void* recvByte)
+
+void gsmpUnwrapper(uint8_t* buffer, tGsmpMsg* msg)
 {
-/**
- * [µ¥ÀÌÅÍÀÇ Æ÷¸ËÀ» unwrapÇÑ´Ù.]
- * ¼Û¼ö½ÅÇÏ´Â ¸ðµç ½Ã½ºÅÛÀº ¸®Æ² ¿£µð¾È Çü½ÄÀ» »ç¿ëÇÑ´Ù°í °¡Á¤ÇÑ´Ù.
- * 1. ¼ö½ÅÇÑ µ¥ÀÌÅÍ¸¦ ÇØ¼®ÇÑ´Ù.
- * 1-1. Ã¹ ¹ÙÀÌÆ®°¡ StartFlag¿Í µ¿ÀÏÇÑÁö È®ÀÎÇÑ´Ù.
- * 1-2. CRC°Ë»ç¸¦ ¼öÇàÇÑ´Ù. -> ±¸Ã¼È­ ÇÊ¿ä
- * 1-2-1. CRC °Ë»ç ½ÇÆÐ ½Ã º¹±¸ ÀýÂ÷¸¦ ¼öÇàÇÑ´Ù.
- * 2. ¸ñÀûÁö ¹öÆÛ¿¡ payload¸¦ ÀúÀåÇÑ´Ù : optional
- */
+	// header copy
+	memcpy(&msg->header, buffer, sizeof(tGsmpMessageHeader));
+  
+	switch(msg->header.msgId)
+	{
+		case IMU_MSG_ID:
+		{
+			memcpy(&gImuPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tImuPayload));
+			break;
+		}
+		case SEEKER_MSG_ID:
+		{
+			memcpy(&gSeekerPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tSeekerPayload));
+			break;
+		}
+		case ACB_RECV_MSG_ID:
+		{
+			memcpy(&gAcbRecvPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tAcbRecvPayload));
+			break;
+		}
+		case ACB_ECHO_RECV_MSG_ID:
+		{
+			memcpy(&gEchoPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tEchoPayload));
+			break;
+		}
+		default :
+		{
+			// TODO: Error handling
+			xil_printf("ERROR : HEADER MSG ID NOT FOUND - %d\r\n", msg->header.msgId);
+		}
+	}
 }
