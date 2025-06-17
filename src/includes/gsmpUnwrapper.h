@@ -1,3 +1,3 @@
 #include "global.h"
 
-void gsmpUnWrapper(uint8_t* buffer, tGsmpMsg* msg);
+void gsmpUnwrapper(uint8_t* buffer, tGsmpMsg* msg);

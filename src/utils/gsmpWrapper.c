@@ -1,15 +1,80 @@
+#include "gsmpWrapper.h"
+#define xil_printf(...)  do {} while(0)
 /*
- * void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
- * GSMP(GoSim Message Protocol)ÀÇ Àü¼ÛÀ» Áö¿øÇÑ´Ù.
- * return : ByteStream ¹İÈ¯
+ * tGsmpMsg* gsmpWrapper(int messageId, int messageStatus, void* pPayload)
+ * GSMP(GoSim Message Protocol)ì˜ ì „ì†¡ì„ ì§€ì›í•œë‹¤. ë°ì´í„° ìŠ¤íŠ¸ë¦¼ì„ gSendDataì— ì €ì¥í•œë‹¤.
+ * return : -
  *
  **/
-void* gsmpWrapper(int messageId, int messageStatus, void* pPayload, int destId)
+void gsmpWrapper(int messageId, int messageStatus, void* pPayload)
 {
-/**
- * [µ¥ÀÌÅÍÀÇ Æ÷¸ËÀ» wrapÇÑ´Ù.]
- * ¼Û¼ö½ÅÇÏ´Â ¸ğµç ½Ã½ºÅÛÀº ¸®Æ² ¿£µğ¾È Çü½ÄÀ» »ç¿ëÇÑ´Ù°í °¡Á¤ÇÑ´Ù.
- * 1. ÀÎÀÚ°ªÀ» ¹ÙÅÁÀ¸·Î ¹ÙÀÌÆ® ½ºÆ®¸²À» »ı¼ºÇÑ´Ù.
- * 2. »ı¼ºÇÑ ¹ÙÀÌÆ®½ºÆ®¸²À» ¹İÈ¯ÇÑ´Ù.
- */
+
+	const uint8_t headerSize = sizeof(tGsmpMessageHeader);
+	uint8_t payloadSize;
+	tGsmpMessageHeader header;
+	uint8_t destId;
+	/**
+	 * [ë°ì´í„°ì˜ í¬ë§·ì„ wrapí•œë‹¤.]
+	 * ì†¡ìˆ˜ì‹ í•˜ëŠ” ëª¨ë“  ì‹œìŠ¤í…œì€ ë¦¬í‹€ ì—”ë””ì•ˆ í˜•ì‹ì„ ì‚¬ìš©í•œë‹¤ê³  ê°€ì •í•œë‹¤.
+	 * 1. ì¸ìê°’ì„ ë°”íƒ•ìœ¼ë¡œ ë°”ì´íŠ¸ ìŠ¤íŠ¸ë¦¼ì„ ìƒì„±í•˜ì—¬ ì €ì¥í•œë‹¤.
+	 */
+	switch(messageId)
+	{
+	case ACB_SEND_MSG_ID :
+	{
+		destId = ACB_ID;
+		payloadSize = sizeof(tAcbPayload);
+		break;
+	}
+	case ACB_ECHO_SEND_MSG_ID :
+	{
+		destId = ACB_ID;
+		payloadSize = sizeof(uint8_t);
+		break;
+	}
+	case TELEMETRY_MSG_ID :
+	{
+		destId = TELMETRY_ID;
+		payloadSize = sizeof(tTelemetryData);
+		break;
+	}
+	case IMU_MSG_ID :
+	case SEEKER_MSG_ID :
+	case ACB_RECV_MSG_ID :
+	case ACB_ECHO_RECV_MSG_ID :
+	{
+		xil_printf("ERROR : WRONG MSGID - GSMPWRAPPER\r\n");
+		break;
+	}
+	default :
+	{
+		break;
+	}
+	}
+	if (pPayload != NULL)
+	{
+		// header ë§¤í•‘
+		header.startflag = START_FLAG;
+		header.srcId = GCU_ID;
+		header.destId = destId;
+		header.msgId = messageId;
+		header.msgStat = messageStatus;
+		header.msgLen = payloadSize;
+
+		// gSendBuffer êµ¬ì„±
+	    // 1. í—¤ë” ë³µì‚¬
+	    memcpy(gSendBuffer, &header, headerSize);
+	    // 2. payload ë³µì‚¬
+	    memcpy(gSendBuffer + headerSize, (const uint8_t*) pPayload, payloadSize);
+
+		// CRC ê³„ì‚°
+		uint16_t crc = calcCrc(gSendBuffer, headerSize + payloadSize);
+
+	    // 3. CRC ë³µì‚¬ (Little Endian)
+	    gSendBuffer[headerSize + payloadSize + 0] = crc & 0xFF;
+	    gSendBuffer[headerSize + payloadSize + 1] = (crc >> 8) & 0xFF;
+
+	}
+
+	return;
 }

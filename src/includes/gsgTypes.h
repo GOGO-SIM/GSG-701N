@@ -96,6 +96,7 @@ typedef struct _tAccCmd
 typedef struct _tTelemetryData
 {
 	int cnt;
+	//int status;
 	uint8_t bitFlags;
 	tImuData imuData;
 	tSeekerData seekerData;
@@ -105,5 +106,11 @@ typedef struct _tTelemetryData
 
 } tTelemetryData;
 #pragma pack(pop)
+
+/*
+ * [Receive Payload]
+ */
+typedef tDVector3 tAcbRecvPayload;
+typedef uint32_t tEchoPayload;
 
 #endif

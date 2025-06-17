@@ -1,17 +1,12 @@
 #include "global.h"
 #include "gsgTypes.h"
 
+#define XUARTPS_SR_OFFSET   0x14U
+
 // Ethernet 체크시 PHY 주소
 
 #define PHY_ADDR   0x0
 #define PHY_BASIC_STATUS    0x1
-
-// Ethernet 체크 위해 존재하는 명령
-
-#define MDIO_CMD_START (1 << 31)
-#define MDIO_CMD_READ (1 << 30)
-#define MDIO_PHY_0 ((PHY_ADDR & 0x1F) << 23)
-#define MDIO_PHY_BASIC_STATUS ((PHY_BASIC_STATUS & 0x1F) << 18)
 
 // OCM 메모리 체크 주소
 
@@ -29,6 +24,7 @@ static u16 sRawVccInt;
 static u16 sRawVccAux;
 static u16 sRawVccRam;
 static u16 sRawTemperture;
+static u16 sTimeOutEth;
 
 // 레지스터를 통한 상태점검 변수
 
@@ -37,24 +33,10 @@ static u32 sUartStatus;
 static u32 sEthernetStatus;
 static u32 sEthStatReadCmd;
 
-void debug(int err)
+void debug()
 {
-    printf("VCCINT: %.3lf V | VCCAUX: %.3lf V | VCCBRAM: %.3lf V | TEMP: %.3lf'C | ErrCNT: %d\r\n",
-            gVoltageInt,gVoltageAux,gVoltageBram ,gCelcius,err);
-}
-
-static u16 readEthStatus()
-{
-	sEthStatReadCmd = MDIO_CMD_START |  // MDIO 명령 시작
-		    		  	  	  MDIO_CMD_READ | // MDIO 읽어오기 명령
-							  MDIO_PHY_0 | // 읽어올 위치
-							  MDIO_PHY_BASIC_STATUS; // 읽어올 정보
-
-    Xil_Out32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET, sEthStatReadCmd);
-
-    while ( (Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_NWSR_OFFSET ) & XEMACPS_NWSR_MDIOIDLE_MASK) == 0);
-
-	return Xil_In32(XPAR_PS7_ETHERNET_0_BASEADDR + XEMACPS_PHYMNTNC_OFFSET) & 0xFFFF;
+    printf("VCCINT: %.3lf V | VCCAUX: %.3lf V | VCCBRAM: %.3lf V | TEMP: %.3lf'C |\r\n",
+            gVoltageInt,gVoltageAux,gVoltageBram ,gCelcius);
 }
 
 static void checkPower()
@@ -99,20 +81,20 @@ static void checkUart()
 
    if (sUartStatus & XUARTPS_IXR_PARITY)
    {
-	   gPassCbitFlag = FALSE; // Uart 패리티 에러 Set
+      gPassCbitFlag = FALSE; // Uart 패리티 에러 Set
    }
    if (sUartStatus & XUARTPS_IXR_FRAMING)
    {
-	   gPassCbitFlag = FALSE; // Uart 프레이밍 에러 Set
+      gPassCbitFlag = FALSE; // Uart 프레이밍 에러 Set
    }
    if (sUartStatus & XUARTPS_IXR_OVER)
    {
-	   gPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
+      gPassCbitFlag = FALSE; // Uart 버퍼 오버런 에러 Set
    }
    //디버깅용------------
    if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
    {
-	   printf("Uart Passed | ");
+      printf("Uart Passed | ");
    }
    //디버깅용------------
    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
@@ -124,16 +106,16 @@ static void checkMemory()
 
    if (sOcmStatus & OCM_SINGLE_ERR)
    {
-	   gPassCbitFlag = FALSE;
+      gPassCbitFlag = FALSE;
    }
    if (sOcmStatus & OCM_MULTI_ERR)
    {
-	   gPassCbitFlag = FALSE;
+      gPassCbitFlag = FALSE;
    }
    //디버깅용------------
    if (!(sOcmStatus & (OCM_SINGLE_ERR|OCM_MULTI_ERR)))
    {
-  	   printf("Memory Passed | ");
+        printf("Memory Passed | ");
    }
    //디버깅용------------
    Xil_Out32(OCM_IRQ_STS_ADDR, sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR)); //Error Reset
@@ -141,18 +123,18 @@ static void checkMemory()
 
 static void checkEthernet()
 {
-   sEthernetStatus = readEthStatus();
+   XEmacPs_PhyRead(&gXemacPsInst, PHY_ADDR,PHY_BASIC_STATUS,&sEthernetStatus);
 
-   if ((sEthernetStatus & 0x4) == FALSE) // 이더넷 연결 FALSE
+   if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
    {
-	   printf("Ethernet Failed | ");
-	   gPassCbitFlag = FALSE;
+      printf("Ethernet Failed | ");
+      gPassCbitFlag = FALSE;
    }
    //디버깅용------------
    else
    {
-	   printf("Ethernet Passed | "); // 디버깅용
-    }
+      printf("Ethernet Passed | "); // 디버깅용
+   }
    //디버깅용------------
 }
 
@@ -166,42 +148,39 @@ static void checkRegister()
 static void runCbit(void)
 {
    static int sErrorCount = 0;
-   while(1)
+   gPassCbitFlag = TRUE;
+
+   if(sErrorCount >= 5)
    {
-      if(sErrorCount >= 5)
-      {
-    	  xil_printf("explode();\n");
-    	  vTaskSuspendAll(); //폭발해서 모든 태스크 정지
-         //explode(); 5번 연속 에러시 자폭
-      }
-      checkPower();
-      if ( gPassCbitFlag == TRUE )
-      {
-         checkRegister();
-      }
-      if ( gPassCbitFlag == FALSE )
-      {
-         sErrorCount += 1;
-      }
-      else if ( gPassCbitFlag == TRUE )
-      {
-         sErrorCount = 0;
-      }
-      gPassCbitFlag = TRUE;
-      //디버깅용------------
-      debug(sErrorCount);
-      vTaskDelay(20);
-      //디버깅용------------
+      xil_printf(" CBIT Failed : explode();\n");
+      xTaskNotifyGive(xExplodeTaskHandle);
    }
+   checkPower();
+
+   if ( gPassCbitFlag == TRUE )
+   {
+      checkRegister();
+   }
+   if ( gPassCbitFlag == FALSE )
+   {
+      sErrorCount += 1;
+   }
+   else if ( gPassCbitFlag == TRUE )
+   {
+      sErrorCount = 0;
+   }
+   //디버깅용------------
+   debug(sErrorCount);
+   //디버깅용------------
 }
 
 void cbitTaskMain( void *pvParameters )
 {
     for(;;)
     {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-		runCbit();
+      xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+      runCbit();
     }
 }

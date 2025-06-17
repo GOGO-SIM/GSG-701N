@@ -1,6 +1,11 @@
+// File: src/tasks/initTask/initTaskMain.c
+
 #include "global.h"
 
 #include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
 #include "lwip/tcpip.h"
 #include "lwip/init.h"
 #include "lwip/netif.h"
@@ -9,246 +14,193 @@
 #include "lwip/netbuf.h"
 #include "lwip/ip_addr.h"
 #include "netif/xemacpsif.h"
+
 #include "platform_config.h"
 #include "xemacps_hw.h"
+#include "xparameters.h"
+#include "xemacps.h"
 
-#define SERVER_IP_ADDR  "192.168.1.4"   // Server IP address
-#define SERVER_PORT     1234            // Server port number
+#include "xil_printf.h"
+#include "xuartps.h"
+#include "xsysmon.h"
+#include "xil_io.h"
 
-#define INIT_FAIL 4
-#define LWIP_NETCONN 1
+#define SERVER_IP_ADDR       "192.168.1.4"
+#define SERVER_PORT          1234
 
-// OCM 메모리 체크 주소
+#define INIT_FAIL            4
 
-#define OCM_PARITY_CTRL_ADDR   0xF800C000U //OCM 컨트롤 용 주소
-#define OCM_IRQ_STS_ADDR       0xF800C008U //OCM 인터럽트 상태 주소
+// OCM parity‐check addresses
+#define OCM_PARITY_CTRL_ADDR 0xF800C000U
+#define OCM_IRQ_STS_ADDR     0xF800C008U
 
-// OCM 컨트롤 주소에  write해 설정해 줄 옵션들
+#define OCM_PARITY_EN            (0 << 0)
+#define OCM_PARITY_EN_IRQ_SINGLE (1 << 2)
+#define OCM_PARITY_EN_IRQ_MULTI  (1 << 3)
 
-#define OCM_PARITY_EN   (0 << 0) // 패리티 체크 Enable -> Parity Check Disable을 0으로 만들어 해제하기
-#define OCM_PARITY_EN_IRQ_SINGLE  (1 << 2) // 싱글 비트 에러 인터럽트 Enable
-#define OCM_PARITY_EN_IRQ_MULTI   (1 << 3) // 멀티 비트 에러 인터럽트 Enable
+// MDIO PHY polling parameters
+#define PHY_MDIO_ADDR         0    // 보드상의 PHY MDIO 주소 (대개 0)
+#define PHY_BSR_REG           1    // Basic Status Register (MDIO 1)
+#define PHY_LINK_STATUS_BIT   (1U << 2)
 
-struct netbuf *recvBuf;
+struct netif      gGsgNetif;
+struct netconn  *gpUdpClientConn;
+struct netconn  *gpUdpServerConn;
+SemaphoreHandle_t xLinkReadySem = NULL;
 
-struct netbuf *sendBuf;
-struct netif gGsgNetif;
-struct netconn *gpUdpServerConn;
-struct netconn *gpUdpClientConn;
+// Forward declarations
+static void tcpipInitDone(void *arg);
+void testUdp(void *pvParameters);
 
 int initUartPs()
 {
-    // UART �꽕�젙 �젙蹂� 援ъ“泥� �룷�씤�꽣
-    XUartPs_Config *Config;
+    // UART 설정 정보 구조체 포인터
+
     int Status;
 
-    // UART �뵒諛붿씠�뒪 ID�뿉 �빐�떦�븯�뒗 �꽕�젙 �젙蹂대�� 寃��깋�빐�꽌 Config�뿉 ���옣
-    // BaseAddress, BaudRate �벑 �븯�뱶�썾�뼱 �젙蹂� �룷�븿
-    Config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
-    if (Config == NULL)
+    // UART 디바이스 ID에 해당하는 설정 정보를 검색해서 Config에 저장
+    // BaseAddress, BaudRate 등 하드웨어 정보 포함
+    gUartConfig = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
+    if (gUartConfig == NULL)
     {
-    	xil_printf("Config is NULL\n");
-    	return XST_FAILURE;
+       xil_printf("Config is NULL\n");
+       return XST_FAILURE;
     }
-
-
     Status = XUartPs_CfgInitialize(&gUartPs, gUartConfig, gUartConfig->BaseAddress);
     if (Status != XST_SUCCESS)
     {
-    	xil_printf("State is FAIL\n");
-    	return XST_FAILURE;
-   	}
-
+       xil_printf("State is FAIL\n");
+       return XST_FAILURE;
+      }
     // 인스턴스 초기화 시, default 값이19200bps이기 때문에 필요 시 명시
     XUartPs_SetBaudRate(&gUartPs, UART_BAUD);
 
     return XST_SUCCESS;
 }
 
-
-
-void initXsysMon()
+// XADC(System Monitor) 초기화
+void initXsysMon(void)
 {
-	gXadcConfig = XSysMon_LookupConfig(XPAR_SYSMON_0_DEVICE_ID);
-    XSysMon_CfgInitialize(&gSysMonInst, gXadcConfig, gXadcConfig->BaseAddress);
+    XSysMon_Config *xadcCfg = XSysMon_LookupConfig(XPAR_SYSMON_0_DEVICE_ID);
+    XSysMon_CfgInitialize(&gSysMonInst, xadcCfg, xadcCfg->BaseAddress);
     XSysMon_SetSequencerMode(&gSysMonInst, XSM_SEQ_MODE_CONTINPASS);
 }
 
-void initMemoryCheck(){
-
-	u32 OcmControl = 0x00;
-	OcmControl = OCM_PARITY_EN | OCM_PARITY_EN_IRQ_SINGLE | OCM_PARITY_EN_IRQ_MULTI;
-	Xil_Out32(OCM_PARITY_CTRL_ADDR,OcmControl);
-	Xil_Out32(OCM_IRQ_STS_ADDR,0x7); // 모든 인터럽트 비트에 1을 써줌으로써 초기화 0x7 = 111이다.
+// OCM 패리티 체크 초기화
+void initMemoryCheck(void)
+{
+    u32 ctrl = OCM_PARITY_EN
+            | OCM_PARITY_EN_IRQ_SINGLE
+            | OCM_PARITY_EN_IRQ_MULTI;
+    Xil_Out32(OCM_PARITY_CTRL_ADDR, ctrl);
+    Xil_Out32(OCM_IRQ_STS_ADDR, 0x7);  // clear all interrupts
 }
 
-// call back
-static void tcpipInitDone(void *arg) {
+// lwIP + EMAC bring-up 완료 후 호출되는 콜백
+static void tcpipInitDone(void *arg)
+{
     ip4_addr_t ipaddr, netmask, gw, serverIp;
+    u16        phyData;
+    LONG       mdioStatus;
+    err_t      err;
+    unsigned char macAddr[6] = {0x00,0x18,0x3E,0x04,0x50,0x84};
 
-    unsigned char macAddr[] = { 0x00, 0x18, 0x3E, 0x04, 0x50, 0x84 };
-    err_t err;
+    // 1) EMAC-PS 드라이버 초기화
+    XEmacPs_Config *emacCfg = XEmacPs_LookupConfig(XPAR_PS7_ETHERNET_0_DEVICE_ID);
+    XEmacPs_CfgInitialize(&gXemacPsInst, emacCfg, emacCfg->BaseAddress);
 
+    // 2) lwIP stack 초기화
     lwip_init();
 
-    IP4_ADDR(&ipaddr, 192, 168, 1, 10);
-    IP4_ADDR(&netmask, 255, 255, 255, 0);
-    IP4_ADDR(&gw, 192, 168, 1, 1);
+    IP4_ADDR(&ipaddr,   192,168,1,10);
+    IP4_ADDR(&netmask, 255,255,255,0);
+    IP4_ADDR(&gw,      192,168,1, 1);
     ipaddr_aton(SERVER_IP_ADDR, &serverIp);
 
-    // TODO: tcp_init()�쓽 �슦�꽑 �닚�쐞媛� �궙�븘�꽌, init�씠 �뒪耳�以꾨쭅 以묎컙�뿉 �셿猷뚮릺�뒗 �쁽�긽�씠 �깮湲대떎.
-
-    if (!xemac_add(&gGsgNetif, &ipaddr, &netmask, &gw, macAddr,
-    		PLATFORM_EMAC_BASEADDR))
-    {
-		xil_printf("Error adding N/W interface\r\n");
-		return;
-	}
-	xil_printf("xemac_add done \r\n");
-
+    // 3) netif 등록 및 up
+    if (!xemac_add(&gGsgNetif, &ipaddr, &netmask, &gw,
+                   macAddr, PLATFORM_EMAC_BASEADDR)) {
+        xil_printf("Error adding netif\r\n");
+        return;
+    }
     netif_set_default(&gGsgNetif);
-    xil_printf("set_default done\r\n");
-
     netif_set_up(&gGsgNetif);
-    xil_printf("set_up done\r\n");
+    xil_printf("EMAC netif up, polling PHY...\r\n");
 
+    // 4) PHY Basic Status Register(1) 읽어서 링크 업 대기
+    do {
+        mdioStatus = XEmacPs_PhyRead(
+            &gXemacPsInst,
+            PHY_MDIO_ADDR,
+            PHY_BSR_REG,
+            &phyData
+        );
+        if (mdioStatus != XST_SUCCESS) {
+            xil_printf("PHY MDIO Read error %ld\r\n", mdioStatus);
+            vTaskDelay(pdMS_TO_TICKS(100));
+            continue;
+        }
+    } while (!(phyData & PHY_LINK_STATUS_BIT));
+    xil_printf(">>> PHY link is UP!\r\n");
 
-    sys_thread_new("xemacif_input_thread",
+    // 6) EMAC 입력 스레드 시작
+    sys_thread_new("xemacif_input",
                    xemacif_input_thread,
-                   &gGsgNetif,
-                   1024,
-                   4);
+                   &gGsgNetif, 1024, configMAX_PRIORITIES-1);
 
-    // UDP �겢�씪�씠�뼵�듃 �꽕�젙
+    // 7) UDP client/server conn 생성 및 설정
     gpUdpClientConn = netconn_new(NETCONN_UDP);
-    if (gpUdpClientConn == NULL) {
-        xil_printf("netconn_new failed!\r\n");
-        gGcuStatus = INIT_FAIL;
-        vTaskDelete(NULL);
+    if (!gpUdpClientConn) {
+        xil_printf("netconn_new(client) failed\r\n");
+        return;
     }
-
     err = netconn_connect(gpUdpClientConn, &serverIp, SERVER_PORT);
-	if (err != ERR_OK) {
-		xil_printf("Failed to connect to server: %d\r\n", err);
-		netconn_delete(gpUdpClientConn);
-		gGcuStatus = INIT_FAIL;
-		vTaskDelete(NULL);
-	}
-	xil_printf("client setting complete %d\r\n", err);
+    xil_printf("Client connect: %d\r\n", err);
 
-	// UDP �꽌踰� �꽕�젙
     gpUdpServerConn = netconn_new(NETCONN_UDP);
-    if (gpUdpServerConn == NULL) {
-        xil_printf("netconn_new failed!\r\n");
-        gGcuStatus = INIT_FAIL;
-        vTaskDelete(NULL);
+    if (!gpUdpServerConn) {
+        xil_printf("netconn_new(server) failed\r\n");
+        return;
     }
-
-    xil_printf("UDP serverConn open DONE\r\n");
-
     err = netconn_bind(gpUdpServerConn, IP_ADDR_ANY, 5001);
-    if (err != ERR_OK) {
-        xil_printf("netconn_bind failed: %d\r\n", err);
-        netconn_delete(gpUdpServerConn);
-        gpUdpServerConn = NULL;
-        gGcuStatus = INIT_FAIL;
+    xil_printf("Server bind: %d\r\n", err);
+    netconn_set_nonblocking(gpUdpServerConn, TRUE);
+    xSemaphoreGive(xLinkReadySem);
+}
+
+// tcpip_init() 래핑
+void initUdpServer(void)
+{
+    xil_printf("Starting lwIP...\r\n");
+    tcpip_init(tcpipInitDone, NULL);
+    xSemaphoreTake(xLinkReadySem, portMAX_DELAY);
+}
+
+// 초기화 태스크 진입점
+void initTaskMain(void *pvParameters)
+{
+    xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+
+    xLinkReadySem = xSemaphoreCreateBinary();
+    if (!xLinkReadySem) {
+        xil_printf("Failed to create semaphore\r\n");
         vTaskDelete(NULL);
     }
 
-    //netconn_set_nonblocking(gpUdpServerConn, TRUE);
-    xTaskNotifyGive(xInitTaskHandle);
-}
+    initUartPs();
+    xil_printf("UART initialized\r\n");
 
-void initUdpServer() {
-    xil_printf("-----lwIP netconn UDP Test Application------\r\n");
-
-    tcpip_init(tcpipInitDone, NULL);
-}
-
-TaskHandle_t xtest;
-
-void testUdp( void *pvParameters )
-{
-// Test: UDP echo server
-//	static ip_addr_t *clientAddr;
-//	static u16_t clientPort;
-//    err_t err;
-//
-//	while (1) {
-//		xil_printf("server is listening\r\n");
-//		err = netconn_recv(gpUdpServerConn, &recvBuf);
-//		if (err == ERR_OK && recvBuf != NULL) {
-//			clientAddr = netbuf_fromaddr(recvBuf);
-//			clientPort = netbuf_fromport(recvBuf);
-//
-//			void *data;
-//			u16_t len;
-//			netbuf_data(recvBuf, &data, &len);
-//
-//			xil_printf("Received %d bytes from %s:%d\r\n",
-//					   netbuf_len(recvBuf),
-//					   ipaddr_ntoa(clientAddr),
-//					   clientPort);
-//			for (int i = 0; i < len; ++i) {
-//				xil_printf("%c", ((char*)data)[i]);
-//			}
-//			netconn_sendto(gpUdpServerConn, recvBuf, clientAddr, clientPort);
-//		}
-//
-//		if (recvBuf != NULL) {
-//			netbuf_delete(recvBuf);
-//			recvBuf = NULL;
-//		}
-//	}
-
-	err_t err;
-	for(;;) {
-	        // TODO: allocate memory -> we have to find another way.
-	        sendBuf = netbuf_new();
-	        if (!sendBuf) {
-	            xil_printf("Failed to create netbuf\r\n");
-	            continue;
-	        }
-
-	        netbuf_ref(sendBuf, "<HELLO SERVER>", 14);
-
-	        // send a message to server.
-	        err = netconn_send(gpUdpClientConn, sendBuf);
-	        if (err != ERR_OK) {
-	            xil_printf("Failed to send UDP packet: %d\r\n", err);
-	        } else {
-	            xil_printf("Sent UDP packet to %s:%d\r\n", SERVER_IP_ADDR, SERVER_PORT);
-	        }
-
-	        netbuf_delete(sendBuf);
-	        vTaskDelay(100);
-	    }
-}
-
-void initTaskMain( void *pvParameters )
-{
-	/**
-	 * 1. UDP server open
-	 * 2. delete task
-	 */
-	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-
-	initUdpServer();
-    xil_printf("UDP Server initialized on port 5001\r\n");
-	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-	initUartPs();
-    xil_printf("UART successfully initialized\r\n");
     initXsysMon();
-    xil_printf("system monitoring successfully initialized\r\n");
+    xil_printf("SysMon initialized\r\n");
 
-	xil_printf("-----test main------\r\n");
-	xTaskCreate((TaskFunction_t)testUdp,
-						"test",
-						2048,
-						NULL,
-						1,
-						&xtest);
+    initMemoryCheck();
+    xil_printf("OCM parity check initialized\r\n");
 
-	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
-	vTaskDelete(NULL);
+    initUdpServer();
+    xil_printf("Network is ready\r\n");
+    // 3) 링크 업 완료될 때까지 대기
+
+    xTaskNotifyGive(xPbitTaskHandle);
+    xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
+    vTaskDelete(NULL);
 }

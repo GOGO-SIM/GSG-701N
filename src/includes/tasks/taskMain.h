@@ -17,5 +17,6 @@ void uartSendTaskMain(void *pvParameters);
 void cbitTaskMain(void *pvParameters);
 void telemetryTaskMain(void *pvParameters);
 void pbitFailTaskMain(void *pvParameters);
+void explodeTaskMain(void *pvParameters);
 
 #endif

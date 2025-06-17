@@ -22,7 +22,8 @@ TaskHandle_t xMainTaskHandle,
 	xUartSendTaskHandle,
 	xCbitTaskHandle,
 	xTelemetryTaskHandle,
-	xPbitFailTaskHandle;
+	xPbitFailTaskHandle,
+	xExplodeTaskHandle;
 
 
 const uint8_t START_FLAG = 0x7E;
@@ -42,9 +43,17 @@ XUartPs gUartPs;
 XUartPs_Config *gUartConfig;
 XSysMon gSysMonInst;
 XSysMon_Config *gXadcConfig;
+XEmacPs gXemacPsInst;
+XEmacPs_Config *gXemacConfig;
 
+// 연속 실패 횟수 저장
 uint32_t gFailCount[4];
 
+// ACB, ECHO, TELEMETRY SendTask 및 wrapper
+uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
+
+// GCU의 현재 모드
+int gModeStatus;
 
 /**
  * gImuData
@@ -52,7 +61,6 @@ uint32_t gFailCount[4];
  * ���ӵ� double vector3(x, y, z)
  */
 tImuData gImuData;
-
 
 /**
  * gSeekerData
@@ -80,14 +88,24 @@ tDVector4 gAttitude;
  */
 tDVector3 gControlCmd;
 
+
+/*
+ * [Receive Payload]
+ */
+tAcbRecvPayload gAcbRecvPayload;
+tEchoPayload gEchoPayload;
+tImuPayload gImuPayload;
+tSeekerPayload gSeekerPayload;
+
 /**
  * gGcuStatus
- * - NORMAL
- * - STANDBY
- * - PBIT_FAILED
- * - CBIT_FAILED
+ * - WAIT
+ * - ENGAGE
+ * - SAFE
+ * - RE-EXPLORATION
  */
-uint32_t gGcuStatus;
+
+uint32_t gGcuStatus = WAIT;
 
 /*=====CBIT&PBIT Standard=====*/
 

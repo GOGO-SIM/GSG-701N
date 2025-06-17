@@ -13,6 +13,8 @@
 #include "xil_io.h"
 #include "gsgTypes.h"
 #include "xemacps_hw.h"
+#include "xemacps.h"
+#include "semphr.h"
 
 /* ��ũ�� ���� */
 #ifndef TRUE
@@ -34,9 +36,29 @@
 #define UART_BAUD 115200
 #endif
 
+#ifndef TELEMETRY_MSG_SIZE
+#define TELEMETRY_MSG_SIZE 165
+#endif
+#ifndef ACB_SEND_MSG_SIZE
+#define ACB_SEND_MSG_SIZE 37
+#endif
+#ifndef ACB_ECHO_SEND_MSG_SIZE
+#define ACB_ECHO_SEND_MSG_SIZE 17
+#endif
 /* Ȱ���� ���� ���� extern */
 extern int gRecvFlag;
 extern uint32_t gFailCount[4];
+
+// tGsmpMsg gSendMsg;
+//extern tGsmpMsg gAcbSendMsg;
+//extern tGsmpMsg gAcbEchoSendMsg;
+//extern tGsmpMsg gTelemetryMsg;
+extern uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
+
+
+// GCU의 현재 모드
+extern int gModeStatus;
+
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
 extern tDVector3 gAccCmd;
@@ -49,6 +71,8 @@ extern XUartPs gUartPs;
 extern XUartPs_Config *gUartConfig;
 extern XSysMon gSysMonInst;
 extern XSysMon_Config *gXadcConfig;
+extern XEmacPs gXemacPsInst;
+extern XEmacPs_Config *gXemacConfig;
 
 /**
  * [task handlers]
@@ -67,8 +91,9 @@ extern TaskHandle_t	xUartSendTaskHandle;
 extern TaskHandle_t	xCbitTaskHandle;
 extern TaskHandle_t	xTelemetryTaskHandle;
 extern TaskHandle_t xPbitFailTaskHandle;
+extern TaskHandle_t xExplodeTaskHandle;
 
-/* enum Ŭ���� ���� */
+/* enum 클래스 정의 */
 enum eGcuStatus
 {
 	NORMAL = 0,
@@ -107,13 +132,21 @@ enum eSourceId
 	TELMETRY_ID = 4
 };
 
-enum eStatus
+enum eMsgStatus
 {
 	OK = 0,
 	CRC_ERROR = 1,
-	INTERNAL_ERROR = 2,
+	INTERNAL_ERROR = 2
 };
 
+enum eModeStatus
+{
+	WAIT = 0,
+	ENGAGE = 1,
+	SAFE = 2,
+	REEXPLORE = 3,
+	EXPLODE = 4
+};
 
 /*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/
 extern double gVoltageInt;
@@ -124,5 +157,18 @@ extern double gCelcius;
 
 extern u32 gPassCbitFlag;
 extern u32 gPassPbitFlag;
+
+/* UDP netconn */
+extern struct netconn *gpUdpServerConn;
+extern struct netconn *gpUdpClientConn;
+
+/* Receive Payload */
+extern tAcbRecvPayload gAcbRecvPayload;
+extern tEchoPayload gEchoPayload;
+extern tImuPayload gImuPayload;
+extern tSeekerPayload gSeekerPayload;
+
+/* GNC */
+extern tDVector3 gAngAccelCmd;
 
 #endif

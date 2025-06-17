@@ -5,7 +5,6 @@
  * exampleMsg -> recvUartMsg, 전역변수화
  * */
 uint8_t rxBuffer[DATA_RECEIVE_SIZE];
-tGsmpMsg exampleMsg;
 
 // len개의 바이트를 받을 때 까지 데이터를 수신받는다.
 int recvUartBytes(uint8_t* buffer, int len)
@@ -18,8 +17,14 @@ int recvUartBytes(uint8_t* buffer, int len)
 	return TRUE;
 }
 
+static void handleEchoingMsg()
+{
+	// TODO: echoing msg가 이상할 경우 PBIT 태스크에 알려야 함.
+}
+
 void runUartReceive()
 {
+	static tGsmpMsg msg;
 	gRecvFlag = TRUE;
 	// 1. 수신받은 데이터 패킷의 크기가 맞지 않다면 종료한다.
 	// 2. CRC 검사를 수행한다.
@@ -40,8 +45,8 @@ void runUartReceive()
 	// 4. 데이터 파싱을 진행한다.
 	//storeParsedUartPacket(rxBuffer, &exampleMsg);
 	//xil_printf("Parse Start\r\n");
-	gsmpUnWrapper(rxBuffer, &exampleMsg);
-	if(exampleMsg.header.msgStat == OK)
+	gsmpUnwrapper(rxBuffer, &msg);
+	if(msg.header.msgStat == OK)
 	{
 		gFailCount[UART_FAIL] = 0;
 	}
@@ -52,10 +57,10 @@ void runUartReceive()
 			explode();
 		}
 	}
-	if (exampleMsg.payload && exampleMsg.header.msgId == ACB_ECHO_RECV_MSG_ID) {
+	if (msg.header.msgId == ACB_ECHO_RECV_MSG_ID) {
 		// TODO : 테스트 데이터 예시 크기이므로 추후 리팩토링 필요 #56
-		int32_t response = *((int32_t*)exampleMsg.payload);
-		xil_printf("responseMsg: %d\r\n", response);
+		//int32_t response = *((int32_t*)exampleMsg.payload);
+		handleEchoingMsg();
 	}
 }
 
