@@ -50,7 +50,7 @@ static void writeFlag()
      sTelemetryPayload.seekerData = gSeekerData;
      sTelemetryPayload.accCmd = gAccCmd;
      sTelemetryPayload.quarternion = gAttitude;
-     sTelemetryPayload.controlCmd = gControlCmd;
+     sTelemetryPayload.controlCmd = gAngAccelCmd;
  }
 
  static void sendViaUdp()
