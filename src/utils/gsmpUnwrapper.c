@@ -30,7 +30,17 @@ void gsmpUnwrapper(uint8_t* buffer, tGsmpMsg* msg)
 		}
 		case ACB_ECHO_RECV_MSG_ID:
 		{
-			memcpy(&gEchoPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tEchoPayload));
+			memcpy(&gAcbEchoPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tEchoPayload));
+			break;
+		}
+		case SEEKER_INFO_MSG_ID:
+		{
+			memcpy(&gSeekerInfo, buffer + sizeof(tGsmpMessageHeader), sizeof(uint8_t));
+			break;
+		}
+		case SEEKER_ECHO_RECV_MSG_ID:
+		{
+			memcpy(&gSeekerEchoPayload, buffer + sizeof(tGsmpMessageHeader), sizeof(tEchoPayload));
 			break;
 		}
 		default :

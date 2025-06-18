@@ -121,6 +121,9 @@ enum eMessageId
 	ACB_ECHO_SEND_MSG_ID = 4,
 	ACB_ECHO_RECV_MSG_ID = 5,
 	TELEMETRY_MSG_ID = 6,
+	SEEKER_ECHO_SEND_MSG_ID = 7,
+	SEEKER_ECHO_RECV_MSG_ID = 8,
+	SEEKER_INFO_MSG_ID = 9,
 };
 
 enum eSourceId
@@ -164,9 +167,14 @@ extern struct netconn *gpUdpClientConn;
 
 /* Receive Payload */
 extern tAcbRecvPayload gAcbRecvPayload;
-extern tEchoPayload gEchoPayload;
+extern tEchoPayload gAcbEchoPayload;
+extern tEchoPayload gSeekerEchoPayload;
 extern tImuPayload gImuPayload;
 extern tSeekerPayload gSeekerPayload;
+extern uint8_t gSeekerInfo;
+
+extern tEchoPayload gSeekerEchoRecvData;
+extern tEchoPayload gAcbEchoRecvData;
 
 /* GNC */
 extern tDVector3 gAngAccelCmd;
