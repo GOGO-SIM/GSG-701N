@@ -301,6 +301,8 @@ void pbitTaskMain( void *pvParameters )
 	if(gPassPbitFlag == TRUE)
 	{
 		xil_printf("\n GSG-701N / [PBIT] : PBIT Success\r\n\n");
+		XGpioPs_WritePin(&gGpioPs, 11, GPIO_OFF);
+		XGpioPs_WritePin(&gGpioPs, 10, GPIO_ON);
 		xTaskNotifyGive(xStanbyIgnitionTaskHandle);
 	}
 	else if(gPassPbitFlag == FALSE)

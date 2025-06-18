@@ -15,6 +15,7 @@
 #include "xemacps_hw.h"
 #include "xemacps.h"
 #include "semphr.h"
+#include "xgpiops.h"
 
 /* ��ũ�� ���� */
 #ifndef TRUE
@@ -49,6 +50,11 @@
 extern int gRecvFlag;
 extern uint32_t gFailCount[4];
 
+#define GPIO_IN 0
+#define GPIO_OUT 1
+#define GPIO_OFF 0
+#define GPIO_ON 1
+
 // tGsmpMsg gSendMsg;
 //extern tGsmpMsg gAcbSendMsg;
 //extern tGsmpMsg gAcbEchoSendMsg;
@@ -73,6 +79,8 @@ extern XSysMon gSysMonInst;
 extern XSysMon_Config *gXadcConfig;
 extern XEmacPs gXemacPsInst;
 extern XEmacPs_Config *gXemacConfig;
+extern XGpioPs gGpioPs;
+extern XGpioPs_Config *gGpioConfig;
 
 /**
  * [task handlers]

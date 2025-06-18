@@ -1,16 +1,7 @@
 #include "global.h"
 #include "xgpiops.h"
 
-#define PS_GPIO_DEVICE_ID  XPAR_PS7_GPIO_0_DEVICE_ID
-
-#define GPIO_IN 0
-#define GPIO_OUT 1
-#define GPIO_OFF 0
-#define GPIO_ON 1
-
 static int sOutPin = 12;
-static XGpioPs sGpioPs;
-static XGpioPs_Config *sGpioConfig;
 
 const static int UART_SEND_TASK_PRIO = 19;
 const static int EXPLODE_TASK_PRIO = 24;
@@ -30,16 +21,10 @@ void explodeTaskMain(void *param)
 
     xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 
-    sGpioConfig = XGpioPs_LookupConfig(PS_GPIO_DEVICE_ID);
-    XGpioPs_CfgInitialize(&sGpioPs, sGpioConfig, sGpioConfig->BaseAddr);
-
-    XGpioPs_SetDirectionPin(&sGpioPs, sOutPin, GPIO_OUT);
-    XGpioPs_SetOutputEnablePin(&sGpioPs, sOutPin, GPIO_OUT);
-
-    XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_ON);
-
     gModeStatus = EXPLODE;
 
+    XGpioPs_WritePin(&gGpioPs, 11, GPIO_OFF);
+    XGpioPs_WritePin(&gGpioPs, 10, GPIO_OFF);
     //-------------------------------------------
 
    vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
@@ -51,9 +36,9 @@ void explodeTaskMain(void *param)
 
    while(1)
    {
-		XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_ON);
+		XGpioPs_WritePin(&gGpioPs, 12, GPIO_ON);
 		usleep(200000);
-		XGpioPs_WritePin(&sGpioPs, sOutPin, GPIO_OFF);
+		XGpioPs_WritePin(&gGpioPs, 12, GPIO_OFF);
 		usleep(200000);
    }
 
