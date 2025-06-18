@@ -45,6 +45,8 @@ XSysMon gSysMonInst;
 XSysMon_Config *gXadcConfig;
 XEmacPs gXemacPsInst;
 XEmacPs_Config *gXemacConfig;
+XGpioPs gGpioPs;
+XGpioPs_Config *gGpioConfig;
 
 // 에코잉 받아온 값 저장
 
