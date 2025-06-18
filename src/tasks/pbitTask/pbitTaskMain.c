@@ -5,6 +5,12 @@
 #include "lwip/api.h"
 
 #define ECHOING_VALUE 19980398
+static u32 sEthernetStatus;
+
+// Ethernet 체크시 PHY 주소
+
+#define PHY_ADDR   0x0
+#define PHY_BASIC_STATUS    0x1
 
 // ADC 변환 Raw 값
 
@@ -15,6 +21,7 @@ static u16 sRawTemperture;
 static u16 sTimeOut;
 static u32 sUartStatus;
 static int sEchoMsgLen = sizeof(tGsmpMessageHeader) +  sizeof(tEchoPayload) + 2;
+static int sEchoMsgLength = sizeof(tEchoPayload);
 
 struct netbuf *SeekerEchoSendBuf;
 
@@ -179,11 +186,22 @@ static void checkUart()
 	checkUartRegister();
 }
 
+static void checkEthernet()
+{
+   XEmacPs_PhyRead(&gXemacPsInst, PHY_ADDR,PHY_BASIC_STATUS,&sEthernetStatus);
+
+   if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
+   {
+	  gSeekerEchoRecvData = FALSE;
+      gPassPbitFlag = FALSE;
+   }
+}
+
 static void checkNetwork()
 {
 	// UDP Receive
 
-	taskENTER_CRITICAL();
+	checkEthernet();
 
 	vTaskPrioritySet(xUdpReceiveTaskHandle, PBIT_TASK_PRIO);
 	xTaskNotifyGive(xUdpReceiveTaskHandle);
@@ -191,8 +209,6 @@ static void checkNetwork()
 	vTaskPrioritySet(xUdpReceiveTaskHandle, UDP_RECEIVE_TASK_PRIO);
 
 	xil_printf("\n");
-
-	taskEXIT_CRITICAL();
 
 	// Seeker Check
 	// Seeker는 자체적 PBIT을 마치고 지속적으로 GCU에  PBIT정보에 대한 데이터를 보냄
@@ -217,16 +233,12 @@ static void checkNetwork()
 
 	// Seeker는 GCU에 19980398을 되돌려줌
 
-	taskENTER_CRITICAL();
-
 	vTaskPrioritySet(xUdpReceiveTaskHandle, PBIT_TASK_PRIO);
 	xTaskNotifyGive(xUdpReceiveTaskHandle);
 	vTaskDelay(pdMS_TO_TICKS(UDP_RECEIVE_DEADLINE));
 	vTaskPrioritySet(xUdpReceiveTaskHandle, UDP_RECEIVE_TASK_PRIO);
 
 	xil_printf("\n");
-
-	taskEXIT_CRITICAL();
 
 	delay_ms(100);
 
@@ -250,16 +262,12 @@ static void checkNetwork()
 
 	delay_ms(100);
 
-	taskENTER_CRITICAL();
-
 	vTaskPrioritySet(xUartReceiveTaskHandle, PBIT_TASK_PRIO);
 	xTaskNotifyGive(xUartReceiveTaskHandle);
 	vTaskDelay(pdMS_TO_TICKS(UART_RECV_DEADLINE));
 	vTaskPrioritySet(xUartReceiveTaskHandle, UART_RECEIVE_TASK_PRIO);
 
 	xil_printf("\n");
-
-	taskEXIT_CRITICAL();
 
 	delay_ms(100);
 

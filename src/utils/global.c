@@ -48,8 +48,8 @@ XEmacPs_Config *gXemacConfig;
 
 // 에코잉 받아온 값 저장
 
-tEchoPayload gSeekerEchoRecvData;
-tEchoPayload gAcbEchoRecvData;
+tEchoPayload gSeekerEchoRecvData = 19980398;
+tEchoPayload gAcbEchoRecvData = 19980398;
 
 // 연속 실패 횟수 저장
 

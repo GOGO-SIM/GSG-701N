@@ -115,7 +115,7 @@ static void udpReceiveRun()
 		netbuf_data(recvBuf, &udpBuffer, &len);
 		if (err == ERR_WOULDBLOCK)
 		{
-			xil_printf("there is no more data\r\n");
+			//xil_printf("there is no more data\r\n");
 			break ;
 		}
 		// 2. check crc
