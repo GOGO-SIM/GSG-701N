@@ -6,5 +6,6 @@ void uartSendTaskMain(void *pvParameters) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         runUartSend();
+        xTaskNotifyGive(xCbitTaskHandle);
 	}
 }

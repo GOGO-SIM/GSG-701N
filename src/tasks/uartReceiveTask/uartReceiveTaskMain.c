@@ -19,5 +19,6 @@ void uartReceiveTaskMain()
 
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         runUartReceive();
+        xTaskNotifyGive(xCbitTaskHandle);
     }
 }
