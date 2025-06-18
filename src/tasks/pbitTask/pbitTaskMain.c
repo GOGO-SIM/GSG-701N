@@ -1,7 +1,16 @@
 #include "global.h"
 #include "gsgTypes.h"
+#include "gsmpWrapper.h"
+#include "lwip/err.h"
+#include "lwip/api.h"
 
 #define ECHOING_VALUE 19980398
+static u32 sEthernetStatus;
+
+// Ethernet 체크시 PHY 주소
+
+#define PHY_ADDR   0x0
+#define PHY_BASIC_STATUS    0x1
 
 // ADC 변환 Raw 값
 
@@ -11,14 +20,20 @@ static u16 sRawVccRam;
 static u16 sRawTemperture;
 static u16 sTimeOut;
 static u32 sUartStatus;
+static int sEchoMsgLen = sizeof(tGsmpMessageHeader) +  sizeof(tEchoPayload) + 2;
+static int sEchoMsgLength = sizeof(tEchoPayload);
+
+struct netbuf *SeekerEchoSendBuf;
 
 const static int PBIT_TASK_PRIO = 27;
 const static int UDP_RECEIVE_TASK_PRIO = 15;
 const static int UART_RECEIVE_TASK_PRIO = 11;
+const static int UDP_RECEIVE_DEADLINE = 100;
+const static int UART_SEND_DEADLINE = 100;
+const static int UART_RECV_DEADLINE = 100;
 
-const static int UDP_RECEIVE_DEADLINE = 50;
-const static int UART_SEND_DEADLINE = 50;
-const static int UART_RECV_DEADLINE = 50;
+static tEchoPayload sSeekerEchoPayload = ECHOING_VALUE;
+static tEchoPayload sAcbEchoPayload = ECHOING_VALUE;
 
 static void delay_ms(u32 ms)
 {
@@ -171,51 +186,97 @@ static void checkUart()
 	checkUartRegister();
 }
 
+static void checkEthernet()
+{
+   XEmacPs_PhyRead(&gXemacPsInst, PHY_ADDR,PHY_BASIC_STATUS,&sEthernetStatus);
+
+   if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
+   {
+	  gSeekerEchoRecvData = FALSE;
+      gPassPbitFlag = FALSE;
+   }
+}
+
 static void checkNetwork()
 {
 	// UDP Receive
 
-	taskENTER_CRITICAL();
+	checkEthernet();
 
 	vTaskPrioritySet(xUdpReceiveTaskHandle, PBIT_TASK_PRIO);
 	xTaskNotifyGive(xUdpReceiveTaskHandle);
 	vTaskDelay(pdMS_TO_TICKS(UDP_RECEIVE_DEADLINE));
 	vTaskPrioritySet(xUdpReceiveTaskHandle, UDP_RECEIVE_TASK_PRIO);
 
-	taskEXIT_CRITICAL();
+	xil_printf("\n");
 
-	// UART Receive
+	// Seeker Check
+	// Seeker는 자체적 PBIT을 마치고 지속적으로 GCU에  PBIT정보에 대한 데이터를 보냄
+	// Seeker가 GCU에게 PBIT 실패 정보를 보내면, gPassPbitFlag를 False로 전환
 
-	taskENTER_CRITICAL();
+	xil_printf(" GSG-701N / [PBIT] : Check for Seeker Connection\r\n\n");
+
+	if (gSeekerInfo == PBIT_FAIL)
+	{
+		gPassPbitFlag = FALSE;
+	}
+
+	// Seeker가  GCU에 PBIT 성공 UDP 정보를 보내는 경우, GCU는 Seeker에 에코잉 값 19980398을 보냄
+
+	gsmpWrapper(SEEKER_ECHO_SEND_MSG_ID,OK,&sSeekerEchoPayload);
+	SeekerEchoSendBuf = netbuf_new();
+	netbuf_ref(SeekerEchoSendBuf, gSendBuffer,sEchoMsgLen);
+	netconn_send(gpUdpClientConn, SeekerEchoSendBuf);
+	xil_printf(" UDP Seeker Echo Transmitted : %d\r\n\n",sSeekerEchoPayload);
+
+	delay_ms(100);
+
+	// Seeker는 GCU에 19980398을 되돌려줌
+
+	vTaskPrioritySet(xUdpReceiveTaskHandle, PBIT_TASK_PRIO);
+	xTaskNotifyGive(xUdpReceiveTaskHandle);
+	vTaskDelay(pdMS_TO_TICKS(UDP_RECEIVE_DEADLINE));
+	vTaskPrioritySet(xUdpReceiveTaskHandle, UDP_RECEIVE_TASK_PRIO);
+
+	xil_printf("\n");
+
+	delay_ms(100);
+
+	xil_printf(" UDP Seeker Echo Recieved : %d\r\n\n",gSeekerEchoRecvData);
+
+	if(gSeekerEchoRecvData != ECHOING_VALUE)
+	{
+		gPassPbitFlag = FALSE;
+	}
+
+	// GCU는 19980398을 보내고 받은 값이 같은지 확인하고, 같다면 PBIT 통과로 간주
+
+	xil_printf(" Check for ACB Connection\r\n");
+
+	gsmpWrapper(ACB_ECHO_SEND_MSG_ID,OK,&sAcbEchoPayload);
+	XUartPs_Send(&gUartPs, gSendBuffer, sEchoMsgLen);
+
+	xil_printf("\nUart ACB Echo Transmitted : %d\r\n\n",sAcbEchoPayload);
+
+	// UART Send
+
+	delay_ms(100);
 
 	vTaskPrioritySet(xUartReceiveTaskHandle, PBIT_TASK_PRIO);
 	xTaskNotifyGive(xUartReceiveTaskHandle);
 	vTaskDelay(pdMS_TO_TICKS(UART_RECV_DEADLINE));
 	vTaskPrioritySet(xUartReceiveTaskHandle, UART_RECEIVE_TASK_PRIO);
 
-	printf("\n");
+	xil_printf("\n");
 
-	taskEXIT_CRITICAL();
+	delay_ms(100);
 
-	// Seeker Check
+	xil_printf(" Uart ACB Echo Recieved : %d\r\n\n",gAcbEchoRecvData);
 
-	xil_printf(" Check for Seeker Connection\r\n\n");
-
-	// Seeker는 자체적 PBIT을 마치고 지속적으로 GCU에  PBIT정보에 대한 데이터를 보냄
-	// Seeker가 GCU에게 PBIT 실패 정보를 보내면, gPassPbitFlag를 False로 전환
-	// Seeker가  GCU에 PBIT 성공 UDP 정보를 보내는 경우, GCU는 Seeker에 에코잉 값 19980398을 보냄
-	// Seeker는 GCU에 19980398을 되돌려줌
-	// GCU는 19980398을 보내고 받은 값이 같은지 확인하고, 같다면 PBIT 통과로 간주
-
-	xil_printf(" Check for IMU Connection\r\n\n");
-
-	xil_printf(" Check for ACB Connection\r\n\n");
-
-	// TBD
-
-	// IMU는 계속 GCU에 자기가 보내줘야 할 데이터를 보냄
-	// GCU는 값이 일정시간 이내에 값이 도착하지 않는다면 (타임아웃) gPassPbitFlag를 False로 전환
-	// GCU가 IMU 값을 받을 시, IMU값이 유효한 값 (각속도 범위 < ABS(1.6)) 이면 PBIT 통과로 간주
+	if(gAcbEchoRecvData != ECHOING_VALUE)
+	{
+		gPassPbitFlag = FALSE;
+	}
 }
 
 static void runPbit(void)

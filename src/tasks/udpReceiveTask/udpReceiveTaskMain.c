@@ -70,7 +70,6 @@ void handleSeekerMsg(tGsmpMsg* msg)
 	}
 	else
 	{
-
 		gFailCount[SEEKER_DATA_FAIL] = 0;
 		// 3. save valid Seeker data
 		gSeekerData = gSeekerPayload;
@@ -83,9 +82,22 @@ void handleSeekerMsg(tGsmpMsg* msg)
 	}
 }
 
-static void handleEchoMsg(tGsmpMsg* msg)
+static void handleSeekerEchoMsg(tGsmpMsg* msg)
 {
-	// TODO: echoing msg가 이상할 경우 PBIT 태스크에 알려야 함.
+	if (msg->header.msgStat != OK)
+	{
+		gPassPbitFlag = FALSE;
+	}
+
+	gSeekerEchoRecvData = gSeekerEchoPayload;
+}
+
+static void handleSeekerInfoMsg(tGsmpMsg* msg)
+{
+	if (msg->header.msgStat != OK)
+	{
+		gPassPbitFlag = FALSE;
+	}
 }
 
 static void udpReceiveRun()
@@ -103,13 +115,13 @@ static void udpReceiveRun()
 		netbuf_data(recvBuf, &udpBuffer, &len);
 		if (err == ERR_WOULDBLOCK)
 		{
-			// xil_printf("there is no more data\r\n");
+			//xil_printf("there is no more data\r\n");
 			break ;
 		}
 		// 2. check crc
 		else if (err != ERR_OK || checkCrc(udpBuffer) == FALSE)
 		{
-			// xil_printf("something went wrong, it might be CRC Error\r\n");
+			xil_printf("something went wrong, it might be CRC Error\r\n");
 			gFailCount[UDP_FAIL] += 1;
 			if (gFailCount[UDP_FAIL] > 10)
 			{
@@ -131,9 +143,13 @@ static void udpReceiveRun()
 			{
 				handleSeekerMsg(&msg);
 			}
-			else if (msg.header.msgId == ACB_ECHO_RECV_MSG_ID)
+			else if (msg.header.msgId == SEEKER_INFO_MSG_ID)
 			{
-				handleEchoMsg(&msg);
+				handleSeekerInfoMsg(&msg);
+			}
+			else if (msg.header.msgId == SEEKER_ECHO_RECV_MSG_ID)
+			{
+				handleSeekerEchoMsg(&msg);
 			}
 		}
 		netbuf_delete(recvBuf);

@@ -17,9 +17,14 @@ int recvUartBytes(uint8_t* buffer, int len)
 	return TRUE;
 }
 
-static void handleEchoingMsg()
+static void handleEchoingMsg(tGsmpMsg* msg)
 {
-	// TODO: echoing msg가 이상할 경우 PBIT 태스크에 알려야 함.
+	if (msg->header.msgStat != OK)
+	{
+		gPassPbitFlag = FALSE;
+	}
+
+	gAcbEchoRecvData = gAcbEchoPayload;
 }
 
 void runUartReceive()
@@ -39,7 +44,7 @@ void runUartReceive()
 		return;
 	}
 
-	xil_printf("CRC : 0X%x\r\n", calcCrc(rxBuffer, DATA_RECEIVE_SIZE-2));
+	//xil_printf("CRC : 0X%x\r\n", calcCrc(rxBuffer, DATA_RECEIVE_SIZE-2));
 
 	// 3. 기존의 데이터에 payload가 지정되어있다면, 풀어준다.
 	// 4. 데이터 파싱을 진행한다.
@@ -57,10 +62,11 @@ void runUartReceive()
 			explode();
 		}
 	}
-	if (msg.header.msgId == ACB_ECHO_RECV_MSG_ID) {
+	if (msg.header.msgId == ACB_ECHO_RECV_MSG_ID)
+	{
 		// TODO : 테스트 데이터 예시 크기이므로 추후 리팩토링 필요 #56
 		//int32_t response = *((int32_t*)exampleMsg.payload);
-		handleEchoingMsg();
+		handleEchoingMsg(&msg);
 	}
 }
 

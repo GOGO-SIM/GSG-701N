@@ -46,10 +46,17 @@ XSysMon_Config *gXadcConfig;
 XEmacPs gXemacPsInst;
 XEmacPs_Config *gXemacConfig;
 
+// 에코잉 받아온 값 저장
+
+tEchoPayload gSeekerEchoRecvData = 19980398;
+tEchoPayload gAcbEchoRecvData = 19980398;
+
 // 연속 실패 횟수 저장
+
 uint32_t gFailCount[4];
 
 // ACB, ECHO, TELEMETRY SendTask 및 wrapper
+
 uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
 // GCU의 현재 모드
@@ -93,9 +100,11 @@ tDVector3 gControlCmd;
  * [Receive Payload]
  */
 tAcbRecvPayload gAcbRecvPayload;
-tEchoPayload gEchoPayload;
+tEchoPayload gAcbEchoPayload;
+tEchoPayload gSeekerEchoPayload;
 tImuPayload gImuPayload;
 tSeekerPayload gSeekerPayload;
+uint8_t gSeekerInfo;
 
 /**
  * gGcuStatus
