@@ -8,14 +8,14 @@ void pbitFailTaskMain( void *pvParameters )
 	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 	/*
-	 * 1. Àü¿ª Ä¿¸Çµå º¯¼öÀÇ payloadÀÇ Current Status¸¦ PBIT_FAIL·Î ¼³Á¤
-	 * 2. ACB CMD ¼Û½Å ÅÂ½ºÅ© ±ú¿ò
+	 * 1. ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ payloadï¿½ï¿½ Current Statusï¿½ï¿½ PBIT_FAILï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	 * 2. ACB CMD ï¿½Û½ï¿½ ï¿½Â½ï¿½Å© ï¿½ï¿½ï¿½ï¿½
 	 * */
-	// 1. Àü¿ª Ä¿¸Çµå º¯¼öÀÇ payloadÀÇ Current Status¸¦ PBIT_FAIL·Î ¼³Á¤
+	// 1. ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ payloadï¿½ï¿½ Current Statusï¿½ï¿½ PBIT_FAILï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	gGcuStatus = PBIT_FAIL;
-	// 2. ACB CMD ¼Û½Å ÅÂ½ºÅ© ±ú¿ò
+	// 2. ACB CMD ï¿½Û½ï¿½ ï¿½Â½ï¿½Å© ï¿½ï¿½ï¿½ï¿½
 	xTaskNotifyGive(xUartSendTaskHandle);
-	// 3. pbit Task ÅÂ½ºÅ© ÈÞ¸é ½ÃÀÛ
-	xil_printf("infinity loop %s\r\n", pcTaskGetName(NULL));
-	while (1) ;
+	// 3. pbit Task ï¿½Â½ï¿½Å© ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	xil_printf("\n Blocking All Task : %s\r\n", pcTaskGetName(NULL));
+	while (1);
 }
