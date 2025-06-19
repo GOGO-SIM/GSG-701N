@@ -8,8 +8,40 @@ static TickType_t lastTick;
 const static tDVector3 bodyX = (tDVector3){1.0, 0.0, 0.0};
 static tDVector3 prev_err = {0.0, 0.0, 0.0};
 
+static double sPastDistance = 0.0;
+static double sCurrDistance = 0.0;
+static double sDiffDistance = 0.0;
+static int sErrorCount = 0;
+
+static void proximityFuze()
+{
+	if (gSeekerData.distance < 100)
+	{
+		xTaskNotifyGive(xExplodeTaskHandle);
+	}
+	sPastDistance = sCurrDistance;
+	sCurrDistance = gSeekerData.distance;
+
+	sDiffDistance = sPastDistance - sCurrDistance;
+}
+
 static void controlRun()
 {
+	proximityFuze();
+
+	if (sDiffDistance < 0)
+	{
+	   sErrorCount += 1;
+	}
+	else
+	{
+	   sErrorCount = 0;
+	}
+	if(sErrorCount >= 3)
+	{
+	   xTaskNotifyGive(xExplodeTaskHandle);
+	}
+
 	now = xTaskGetTickCount();
 	dt = (now - lastTick) * portTICK_PERIOD_MS * 1e-3;
 	if (dt < 1e-6)

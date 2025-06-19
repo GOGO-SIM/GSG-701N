@@ -1,8 +1,6 @@
 #include "global.h"
 #include "xgpiops.h"
 
-static int sOutPin = 12;
-
 const static int UART_SEND_TASK_PRIO = 19;
 const static int EXPLODE_TASK_PRIO = 24;
 
@@ -14,7 +12,6 @@ void explodeTaskMain(void *param)
     vTaskSuspend(xNavigationTaskHandle);
     vTaskSuspend(xGuidanceTaskHandle);
     vTaskSuspend(xControlTaskHandle);
-    vTaskSuspend(xControlTaskHandle);
     vTaskSuspend(xUartReceiveTaskHandle);
     vTaskSuspend(xCbitTaskHandle);
     vTaskSuspend(xTelemetryTaskHandle);
@@ -23,13 +20,11 @@ void explodeTaskMain(void *param)
 
     gModeStatus = EXPLODE;
 
-    XGpioPs_WritePin(&gGpioPs, 11, GPIO_OFF);
-    XGpioPs_WritePin(&gGpioPs, 10, GPIO_OFF);
     //-------------------------------------------
 
    vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
    xTaskNotifyGive(xUartSendTaskHandle);
-   vTaskDelay(pdMS_TO_TICKS(100));
+   vTaskDelay(pdMS_TO_TICKS(200));
    vTaskSuspend(xUdpReceiveTaskHandle);
 
    //-------------------------------------------
