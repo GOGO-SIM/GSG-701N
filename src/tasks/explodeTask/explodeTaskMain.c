@@ -12,7 +12,6 @@ void explodeTaskMain(void *param)
     vTaskSuspend(xNavigationTaskHandle);
     vTaskSuspend(xGuidanceTaskHandle);
     vTaskSuspend(xControlTaskHandle);
-    vTaskSuspend(xControlTaskHandle);
     vTaskSuspend(xUartReceiveTaskHandle);
     vTaskSuspend(xCbitTaskHandle);
     vTaskSuspend(xTelemetryTaskHandle);
@@ -25,7 +24,7 @@ void explodeTaskMain(void *param)
 
    vTaskPrioritySet(xUartSendTaskHandle, EXPLODE_TASK_PRIO);
    xTaskNotifyGive(xUartSendTaskHandle);
-   vTaskDelay(pdMS_TO_TICKS(100));
+   vTaskDelay(pdMS_TO_TICKS(200));
    vTaskSuspend(xUdpReceiveTaskHandle);
 
    //-------------------------------------------

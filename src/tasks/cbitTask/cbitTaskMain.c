@@ -26,10 +26,6 @@ static u16 sRawVccRam;
 static u16 sRawTemperture;
 static u16 sTimeOutEth;
 
-static double sPastDistance = 0.0;
-static double sCurrDistance = 0.0;
-static double sDiffDistance = 0.0;
-
 // 레지스터를 통한 상태점검 변수
 
 static u32 sOcmStatus; //ocm = on chip memory
@@ -149,38 +145,23 @@ static void checkRegister()
    checkMemory();
 }
 
-static void proximityFuze()
-{
-	if (gSeekerData.distance < 100)
-	{
-		xTaskNotifyGive(xExplodeTaskHandle);
-	}
-	sPastDistance = sCurrDistance;
-	sCurrDistance = gSeekerData.distance;
-
-	sDiffDistance = sPastDistance - sCurrDistance;
-}
-
 static void runCbit(void)
 {
    static int sErrorCount = 0;
    gPassCbitFlag = TRUE;
 
-   proximityFuze();
-
-   if(sErrorCount >= 10)
+   if(sErrorCount >= 5)
    {
       xil_printf(" CBIT Failed : explode();\n");
       xTaskNotifyGive(xExplodeTaskHandle);
    }
-
    checkPower();
 
    if ( gPassCbitFlag == TRUE )
    {
       checkRegister();
    }
-   if ( gPassCbitFlag == FALSE || sDiffDistance < 0)
+   if ( gPassCbitFlag == FALSE )
    {
       sErrorCount += 1;
    }
@@ -201,5 +182,6 @@ void cbitTaskMain( void *pvParameters )
 
       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
       runCbit();
+      xTaskNotifyGive(xTelemetryTaskHandle);
     }
 }
