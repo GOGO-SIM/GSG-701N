@@ -70,6 +70,11 @@ int initGpioPs()
     XGpioPs_WritePin(&gGpioPs, 10, GPIO_OFF);
 }
 
+int initDistance()
+{
+	gSeekerData.distance = 1e9;
+}
+
 int initUartPs()
 {
     // UART 설정 정보 구조체 포인터
@@ -204,7 +209,7 @@ void initTaskMain(void *pvParameters)
         xil_printf("Failed to create semaphore\r\n");
         vTaskDelete(NULL);
     }
-
+    initDistance();
     initGpioPs();
     xil_printf("GPIO is ready\r\n");
 
