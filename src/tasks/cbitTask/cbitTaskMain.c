@@ -182,6 +182,5 @@ void cbitTaskMain( void *pvParameters )
 
       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
       runCbit();
-      xTaskNotifyGive(xTelemetryTaskHandle);
     }
 }
