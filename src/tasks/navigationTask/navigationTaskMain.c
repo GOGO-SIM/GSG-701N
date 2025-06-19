@@ -71,5 +71,6 @@ void navigationTaskMain( void *pvParameters )
 
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         navigationRun();
+        xTaskNotifyGive(xGuidanceTaskHandle);
     }
 }

@@ -60,5 +60,6 @@ void guidanceTaskMain(void *pvParameters)
 
         xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         guidanceRun();
+        xTaskNotifyGive(xControlTaskHandle);
     }
 }
