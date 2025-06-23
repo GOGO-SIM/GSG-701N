@@ -1,5 +1,7 @@
 #include "global.h"
 #include "gsgTypes.h"
+#include "xgpiops_hw.h"
+#include "xil_io.h"
 
 #define XUARTPS_SR_OFFSET   0x14U
 
@@ -32,6 +34,7 @@ static u32 sOcmStatus; //ocm = on chip memory
 static u32 sUartStatus;
 static u32 sEthernetStatus;
 static u32 sEthStatReadCmd;
+static u32 sButtonLevel;
 
 void debug()
 {
@@ -148,6 +151,14 @@ static void checkRegister()
 static void runCbit(void)
 {
    static int sErrorCount = 0;
+
+   sButtonLevel= XGpioPs_ReadPin(&gGpioPs, DESTRUCT_STATUS_POS);
+
+   if(sButtonLevel)
+   {
+	   xTaskNotifyGive(xExplodeTaskHandle);
+   }
+
    gPassCbitFlag = TRUE;
 
    if(sErrorCount >= 5)

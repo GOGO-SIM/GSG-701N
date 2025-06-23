@@ -16,6 +16,7 @@
 #include "xemacps.h"
 #include "semphr.h"
 #include "xgpiops.h"
+#include "xscugic.h"
 
 /* ��ũ�� ���� */
 #ifndef TRUE
@@ -54,6 +55,11 @@ extern uint32_t gFailCount[4];
 #define GPIO_OUT 1
 #define GPIO_OFF 0
 #define GPIO_ON 1
+
+#define EXPLODE_STATUS_POS 12
+#define PREPARE_STATUS_POS 11
+#define OPERATION_STATUS_POS 10
+#define DESTRUCT_STATUS_POS 13
 
 // tGsmpMsg gSendMsg;
 //extern tGsmpMsg gAcbSendMsg;
@@ -188,4 +194,7 @@ extern tEchoPayload gAcbEchoRecvData;
 extern tDVector3 gAngAccelCmd;
 extern volatile BaseType_t gSeekerUpdated;
 
+/* Interrupt */
+
+extern void destructButtonHandler();
 #endif

@@ -1,5 +1,3 @@
-// File: src/tasks/initTask/initTaskMain.c
-
 #include "global.h"
 
 #include "FreeRTOS.h"
@@ -57,17 +55,24 @@ int initGpioPs()
     gGpioConfig = XGpioPs_LookupConfig(XPAR_PS7_GPIO_0_DEVICE_ID);
     XGpioPs_CfgInitialize(&gGpioPs, gGpioConfig, gGpioConfig->BaseAddr);
 
-    XGpioPs_SetDirectionPin(&gGpioPs, 12, GPIO_OUT);
-    XGpioPs_SetOutputEnablePin(&gGpioPs, 12, GPIO_OUT);
+    //-----------------------------------------------------------------------
 
-    XGpioPs_SetDirectionPin(&gGpioPs, 11, GPIO_OUT);
-    XGpioPs_SetOutputEnablePin(&gGpioPs, 11, GPIO_OUT);
+    XGpioPs_SetDirectionPin(&gGpioPs, EXPLODE_STATUS_POS, GPIO_OUT);
+    XGpioPs_SetOutputEnablePin(&gGpioPs, EXPLODE_STATUS_POS, GPIO_OUT);
 
-    XGpioPs_SetDirectionPin(&gGpioPs, 10, GPIO_OUT);
-    XGpioPs_SetOutputEnablePin(&gGpioPs, 10, GPIO_OUT);
+    XGpioPs_SetDirectionPin(&gGpioPs, PREPARE_STATUS_POS, GPIO_OUT);
+    XGpioPs_SetOutputEnablePin(&gGpioPs, PREPARE_STATUS_POS, GPIO_OUT);
 
-    XGpioPs_WritePin(&gGpioPs, 12, GPIO_OFF);
-    XGpioPs_WritePin(&gGpioPs, 10, GPIO_OFF);
+    XGpioPs_SetDirectionPin(&gGpioPs, OPERATION_STATUS_POS, GPIO_OUT);
+    XGpioPs_SetOutputEnablePin(&gGpioPs, OPERATION_STATUS_POS, GPIO_OUT);
+
+    XGpioPs_SetDirectionPin(&gGpioPs,DESTRUCT_STATUS_POS, GPIO_IN);
+    XGpioPs_SetOutputEnablePin(&gGpioPs,DESTRUCT_STATUS_POS, GPIO_IN);
+
+    //-----------------------------------------------------------------------
+
+    XGpioPs_WritePin(&gGpioPs, EXPLODE_STATUS_POS, GPIO_OFF);
+    XGpioPs_WritePin(&gGpioPs, OPERATION_STATUS_POS, GPIO_OFF);
 }
 
 int initDistance()
@@ -209,7 +214,6 @@ void initTaskMain(void *pvParameters)
         xil_printf("Failed to create semaphore\r\n");
         vTaskDelete(NULL);
     }
-    initDistance();
     initGpioPs();
     xil_printf("GPIO is ready\r\n");
 
