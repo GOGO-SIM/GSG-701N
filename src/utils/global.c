@@ -89,7 +89,7 @@ tDVector3 gAccCmd;
  * ���� �ڼ� double vector4 (w, x, y, z)
  */
 tDVector4 gAttitude;
-
+tDVector3 gForward;
 /**
  * gControlCommand
  * ���� �ڼ� double vector3 (x, y, z)
@@ -127,5 +127,9 @@ double gCelcius = 0.0f;
 
 u32 gPassCbitFlag = TRUE;
 u32 gPassPbitFlag = TRUE;
+
+/*=======GNC=======*/
+
+volatile BaseType_t gSeekerUpdated = pdFALSE;
 
 #endif
