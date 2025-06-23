@@ -77,7 +77,7 @@ extern tDVector3 gAccCmd;
 extern tDVector4 gAttitude;
 extern tDVector3 gControlCmd;
 extern uint32_t gGcuStatus;
-
+extern tDVector3 gForward;
 /* from init */
 extern XUartPs gUartPs;
 extern XUartPs_Config *gUartConfig;
@@ -192,6 +192,7 @@ extern tEchoPayload gAcbEchoRecvData;
 
 /* GNC */
 extern tDVector3 gAngAccelCmd;
+extern volatile BaseType_t gSeekerUpdated;
 
 /* Interrupt */
 
