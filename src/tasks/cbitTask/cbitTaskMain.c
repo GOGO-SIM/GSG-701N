@@ -94,7 +94,7 @@ static void checkUart()
    //디버깅용------------
    if (!(sUartStatus & (XUARTPS_IXR_PARITY|XUARTPS_IXR_FRAMING|XUARTPS_IXR_OVER)))
    {
-      printf("Uart Passed | ");
+//      printf("Uart Passed | ");
    }
    //디버깅용------------
    XUartPs_WriteReg(gUartConfig->BaseAddress, XUARTPS_ISR_OFFSET, sUartStatus); // Error Reset
@@ -115,7 +115,7 @@ static void checkMemory()
    //디버깅용------------
    if (!(sOcmStatus & (OCM_SINGLE_ERR|OCM_MULTI_ERR)))
    {
-        printf("Memory Passed | ");
+//        printf("Memory Passed | ");
    }
    //디버깅용------------
    Xil_Out32(OCM_IRQ_STS_ADDR, sOcmStatus & (OCM_SINGLE_ERR | OCM_MULTI_ERR)); //Error Reset
@@ -127,13 +127,13 @@ static void checkEthernet()
 
    if (((sEthernetStatus & 0x0004) == 0)) // 이더넷 연결 FALSE
    {
-      printf("Ethernet Failed | ");
+//      printf("Ethernet Failed | ");
       gPassCbitFlag = FALSE;
    }
    //디버깅용------------
    else
    {
-      printf("Ethernet Passed | "); // 디버깅용
+//      printf("Ethernet Passed | "); // 디버깅용
    }
    //디버깅용------------
 }
@@ -170,7 +170,7 @@ static void runCbit(void)
       sErrorCount = 0;
    }
    //디버깅용------------
-   debug(sErrorCount);
+//   debug(sErrorCount);
    //디버깅용------------
 }
 
@@ -180,7 +180,7 @@ void cbitTaskMain( void *pvParameters )
     {
       ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-      xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+//      xil_printf("\nRUN -- %s\r\n", pcTaskGetName(NULL));
       runCbit();
       xTaskNotifyGive(xTelemetryTaskHandle);
     }
