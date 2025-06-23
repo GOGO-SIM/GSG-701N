@@ -29,13 +29,19 @@ void gsmpWrapper(int messageId, int messageStatus, void* pPayload)
 	case ACB_ECHO_SEND_MSG_ID :
 	{
 		destId = ACB_ID;
-		payloadSize = sizeof(uint8_t);
+		payloadSize = sizeof(tEchoPayload);
 		break;
 	}
 	case TELEMETRY_MSG_ID :
 	{
 		destId = TELMETRY_ID;
 		payloadSize = sizeof(tTelemetryData);
+		break;
+	}
+	case SEEKER_ECHO_SEND_MSG_ID :
+	{
+		destId = SEEKER_ID;
+		payloadSize = sizeof(tEchoPayload);
 		break;
 	}
 	case IMU_MSG_ID :

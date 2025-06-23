@@ -13,6 +13,14 @@ static TickType_t lastTick = 0;
 const static tDVector3 bodyX = (tDVector3){1.0, 0.0, 0.0};
 static tDVector3 prev_err = {0.0, 0.0, 0.0};
 
+static void proximityFuze()
+{
+	if (gSeekerData.distance < 100)
+	{
+		xTaskNotifyGive(xExplodeTaskHandle);
+	}
+}
+
 static void controlRun()
 {
 	// --- 수정된 부분 시작 ---
@@ -20,6 +28,9 @@ static void controlRun()
 	TickType_t now = xTaskGetTickCount();
 	double dt;
 
+  // 근접신관 동작
+  proximityFuze();
+ 
 	if (lastTick == 0) {
 		// 태스크가 시작되고 처음 호출될 때, dt는 기본값(20ms)을 사용합니다.
 		dt = 0.020;
@@ -28,6 +39,7 @@ static void controlRun()
 		dt = (double)(now - lastTick) * portTICK_PERIOD_MS / 1000.0;
 	}
 	// 다음 계산을 위해 현재 Tick 값을 저장합니다.
+
 	lastTick = now;
 
 	// 2. dt가 비정상적인 값(0 또는 너무 큰 값)일 경우를 대비한 안전장치를 추가합니다.
