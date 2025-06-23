@@ -27,20 +27,20 @@ static void proximityFuze()
 
 static void controlRun()
 {
-	proximityFuze();
-
-	if (sDiffDistance < 0)
-	{
-	   sErrorCount += 1;
-	}
-	else
-	{
-	   sErrorCount = 0;
-	}
-	if(sErrorCount >= 3)
-	{
-	   xTaskNotifyGive(xExplodeTaskHandle);
-	}
+//	proximityFuze();
+//
+//	if (sDiffDistance < 0)
+//	{
+//	   sErrorCount += 1;
+//	}
+//	else
+//	{
+//	   sErrorCount = 0;
+//	}
+//	if(sErrorCount >= 3)
+//	{
+//	   xTaskNotifyGive(xExplodeTaskHandle);
+//	}
 
 	now = xTaskGetTickCount();
 	dt = (now - lastTick) * portTICK_PERIOD_MS * 1e-3;

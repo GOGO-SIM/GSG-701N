@@ -6,6 +6,7 @@
 
 #define ECHOING_VALUE 19980398
 static u32 sEthernetStatus;
+static u32 sButtonLevel;
 
 // Ethernet 체크시 PHY 주소
 
@@ -39,6 +40,32 @@ static void delay_ms(u32 ms)
 {
     TickType_t start = xTaskGetTickCount();
     while ( (xTaskGetTickCount() - start) < pdMS_TO_TICKS(ms) );
+}
+
+static void waitInputHigh()
+{
+	while(!sButtonLevel)
+	{
+		sButtonLevel= XGpioPs_ReadPin(&gGpioPs, DESTRUCT_STATUS_POS);
+	}
+}
+
+static void waitInputLow()
+{
+	static int sInputCount = 0;
+	while(1)
+	{
+		sButtonLevel = XGpioPs_ReadPin(&gGpioPs, DESTRUCT_STATUS_POS);
+
+		if (sButtonLevel != 1)
+		{
+			sInputCount += 1;
+		}
+		if (sInputCount > 5)
+		{
+			break;
+		}
+	}
 }
 
 static void checkPower()
@@ -301,13 +328,21 @@ void pbitTaskMain( void *pvParameters )
 	if(gPassPbitFlag == TRUE)
 	{
 		xil_printf("\n GSG-701N / [PBIT] : PBIT Success\r\n\n");
-		XGpioPs_WritePin(&gGpioPs, 11, GPIO_OFF);
-		XGpioPs_WritePin(&gGpioPs, 10, GPIO_ON);
+		XGpioPs_WritePin(&gGpioPs, OPERATION_STATUS_POS, GPIO_ON);
+
+		waitInputHigh();
+		waitInputLow();
+
+		XGpioPs_WritePin(&gGpioPs, PREPARE_STATUS_POS, GPIO_OFF);
 		xTaskNotifyGive(xStanbyIgnitionTaskHandle);
 	}
+
 	else if(gPassPbitFlag == FALSE)
 	{
 	    xil_printf("\n GSG-701N / [PBIT] : PBIT Failed\r\n\n");
+	    XGpioPs_WritePin(&gGpioPs, PREPARE_STATUS_POS, GPIO_OFF);
+	    XGpioPs_WritePin(&gGpioPs, EXPLODE_STATUS_POS, GPIO_ON);
+
 	    xTaskNotifyGive(xPbitFailTaskHandle);
 	}
 	xTaskNotifyGive(xSchedulingTaskHandle);

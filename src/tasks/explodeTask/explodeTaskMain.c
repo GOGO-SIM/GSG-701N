@@ -31,9 +31,9 @@ void explodeTaskMain(void *param)
 
    while(1)
    {
-		XGpioPs_WritePin(&gGpioPs, 12, GPIO_ON);
+		XGpioPs_WritePin(&gGpioPs, EXPLODE_STATUS_POS, GPIO_ON);
 		usleep(200000);
-		XGpioPs_WritePin(&gGpioPs, 12, GPIO_OFF);
+		XGpioPs_WritePin(&gGpioPs, EXPLODE_STATUS_POS, GPIO_OFF);
 		usleep(200000);
    }
 
