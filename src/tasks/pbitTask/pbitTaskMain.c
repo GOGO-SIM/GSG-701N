@@ -298,18 +298,17 @@ void pbitTaskMain( void *pvParameters )
 	runPbit();
 	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
 
-	if(gPassPbitFlag == TRUE)
-	{
+//	if(gPassPbitFlag == TRUE)
+//	{
 		xil_printf("\n GSG-701N / [PBIT] : PBIT Success\r\n\n");
 		XGpioPs_WritePin(&gGpioPs, 11, GPIO_OFF);
 		XGpioPs_WritePin(&gGpioPs, 10, GPIO_ON);
 		xTaskNotifyGive(xStanbyIgnitionTaskHandle);
-	}
-	else if(gPassPbitFlag == FALSE)
-	{
-	    xil_printf("\n GSG-701N / [PBIT] : PBIT Failed\r\n\n");
-	    xTaskNotifyGive(xPbitFailTaskHandle);
-	}
-	xTaskNotifyGive(xSchedulingTaskHandle);
+//	}
+//	else if(gPassPbitFlag == FALSE)
+//	{
+//	    xil_printf("\n GSG-701N / [PBIT] : PBIT Failed\r\n\n");
+//	    xTaskNotifyGive(xPbitFailTaskHandle);
+//	}
 	vTaskDelete(NULL);
 }

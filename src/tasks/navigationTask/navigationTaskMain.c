@@ -16,6 +16,9 @@
 // --- 수정된 부분 시작 ---
 // 이전 Tick 시간을 저장하기 위한 static 변수
 static TickType_t sPrevTick = 0;
+static tDVector3 sVelocity = {0, 0, 0};
+static tDVector3 sPosition = {0, 0, 0};
+static tDVector3 sInitialPosition = {0, 0, 0};
 // --- 수정된 부분 종료 ---
 
 static void navigationRun()
@@ -28,6 +31,7 @@ static void navigationRun()
     if (sPrevTick == 0) {
         // 태스크가 시작되고 처음 호출될 때, dt는 기본값(20ms)을 사용합니다.
         dt = 0.020;
+        sInitialPosition = sPosition;
     } else {
         // (현재 Tick - 이전 Tick) * Tick당 시간(ms) / 1000.0 => 초(s)로 변환
         dt = (double)(currentTick - sPrevTick) * portTICK_PERIOD_MS / 1000.0;
@@ -44,6 +48,27 @@ static void navigationRun()
 
     // IMU 데이터 읽기
     tImuData imu = gImuData;
+
+    // --- 거리 계산 로직 추가 시작 ---
+    // 속도 적분
+    sVelocity.x += imu.acc.x * dt;
+    sVelocity.y += imu.acc.y * dt;
+    sVelocity.z += imu.acc.z * dt;
+
+    // 위치 적분
+    sPosition.x += sVelocity.x * dt;
+    sPosition.y += sVelocity.y * dt;
+    sPosition.z += sVelocity.z * dt;
+
+    // 거리 계산 및 전역 변수 업데이트
+    double dx = sPosition.x - sInitialPosition.x;
+    double dy = sPosition.y - sInitialPosition.y;
+    double dz = sPosition.z - sInitialPosition.z;
+    
+    //printf("imu (%.4f %.4f %.4f) vel(%.4f %.4f %.4f) pos (%.4f %.4f %.4f) d (%.4f %.4f %.4f)\r\n ", imu.acc.x, imu.acc.y, imu.acc.z,
+    //		sVelocity.x, sVelocity.y, sVelocity.z, sPosition.x, sPosition.y, sPosition.z, dx, dy, dz);
+    gDistanceFromStart = sqrt(dx*dx + dy*dy + dz*dz);
+    //printf("gDistanceFromStart: %.4f\r\n", gDistanceFromStart);aw
 
 	// 현재 자세 쿼터니언 복사
     tDVector4 q = gAttitude;
@@ -67,10 +92,7 @@ static void navigationRun()
 
 	// 전역 변수에 갱신
 	gAttitude = q;
-
-	   // printf("quternion = [%.6f, %.6f, %.6f, %.6f]\r\n", gAttitude.w, gAttitude.x, gAttitude.y, gAttitude.z);
-   gForward = rotateVectorByQuat(q, (tDVector3){1.0, 0.0, 0.0});
-//   printf("forward = [%.6f, %.6f, %.6f]\r\n", gForward.x, gForward.y, gForward.z);
+    gForward = rotateVectorByQuat(q, (tDVector3){1.0, 0.0, 0.0});
 }
 
 void navigationTaskMain( void *pvParameters )
@@ -90,13 +112,34 @@ void navigationTaskMain( void *pvParameters )
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-//        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         navigationRun();
-        if (gSeekerUpdated) {          // ★ 새 Seeker 데이터가 있으면
-            gSeekerUpdated = pdFALSE;  //   소비 후 클리어
-            xTaskNotifyGive(xGuidanceTaskHandle);  // 항법→유도→제어
-        } else {
-            xTaskNotifyGive(xControlTaskHandle);   // 항법→제어
+//        if (gGcuStatus == STANDBY)
+//        {
+//        	xil_printf("gGcuStatus: STANDBY\r\n");
+//        }
+//        else if (gGcuStatus == ENGAGE)
+//        {
+//        	xil_printf("gGcuStatus: ENGAGE\r\n");
+//        }
+//        else if (gGcuStatus == PBIT_FAIL)
+//        {
+//        	xil_printf("gGcuStatus: PBIT_FAIL\r\n");
+//        }
+//        else
+//        {
+//        	xil_printf("gGcuStatus: EXPLODE\r\n");
+//        }
+
+        if (gGcuStatus != STANDBY)
+        {
+            if (gSeekerUpdated) 
+            {          // ★ 새 Seeker 데이터가 있으면
+                gSeekerUpdated = pdFALSE;  //   소비 후 클리어
+                xTaskNotifyGive(xGuidanceTaskHandle);  // 항법→유도→제어
+            } else {
+                xTaskNotifyGive(xControlTaskHandle);   // 항법→제어
+            }
         }
     }
 }
