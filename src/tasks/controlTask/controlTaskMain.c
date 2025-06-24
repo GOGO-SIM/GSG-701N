@@ -15,7 +15,7 @@ static tDVector3 prev_err = {0.0, 0.0, 0.0};
 
 static void proximityFuze()
 {
-	if (gSeekerData.distance < 100)
+	if (gSeekerData.distance < 20)
 	{
 		xTaskNotifyGive(xExplodeTaskHandle);
 	}
@@ -101,7 +101,7 @@ void controlTaskMain(void *pvParameters)
     for(;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
+        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         controlRun();
     }
 }

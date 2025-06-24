@@ -44,7 +44,6 @@ static void writeFlag()
  static void writePayload()
  {
      sTelemetryPayload.cnt = sframeCount;  // Write Current FrameCount
-     //sTelemetryPayload.status = gGcuStatus;
      sTelemetryPayload.bitFlags = sTaskStatusFlags; // Write Current StatusFlag;
      sTelemetryPayload.imuData = gImuData;
      sTelemetryPayload.seekerData = gSeekerData;
@@ -90,7 +89,7 @@ static void writeFlag()
      for(;;)
      {
        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-//       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
        runTelemetry();
      }
  }
