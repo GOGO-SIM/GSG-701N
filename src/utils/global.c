@@ -61,9 +61,6 @@ uint32_t gFailCount[4];
 
 uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
-// GCU의 현재 모드
-int gModeStatus;
-
 /**
  * gImuData
  * ���ӵ� double vector3(x, y, z)
@@ -110,13 +107,13 @@ uint8_t gSeekerInfo;
 
 /**
  * gGcuStatus
- * - WAIT
+ * - STANDBY
  * - ENGAGE
  * - SAFE
  * - RE-EXPLORATION
  */
 
-uint32_t gGcuStatus = WAIT;
+uint32_t gGcuStatus = STANDBY;
 
 /*=====CBIT&PBIT Standard=====*/
 
@@ -131,5 +128,6 @@ u32 gPassPbitFlag = TRUE;
 /*=======GNC=======*/
 
 volatile BaseType_t gSeekerUpdated = pdFALSE;
+double gDistanceFromStart = 0.0;
 
 #endif

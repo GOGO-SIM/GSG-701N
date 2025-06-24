@@ -5,16 +5,15 @@
 
 void stanbyIgnitionTaskMain( void *pvParameters )
 {
-	/*
-	 * 1. Àü¿ª Ä¿¸Çµå º¯¼öÀÇ payloadÀÇ current Status¸¦ STANDBY·Î ¼³Á¤
-	 * 2. ACB CMD ¼Û½Å ÅÂ½ºÅ© ±ú¿ò
-	 * */
-	// 1. Àü¿ª Ä¿¸Çµå º¯¼öÀÇ payloadÀÇ current Status¸¦ STANDBY·Î ¼³Á¤
 	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-	gGcuStatus = STANDBY;
-	// 2. ACB CMD ¼Û½Å ÅÂ½ºÅ© ±ú¿ò
-	xTaskNotifyGive(xUartSendTaskHandle);
-	xil_printf("DEL -- %s\r\n", pcTaskGetName(NULL));
+	while (gDistanceFromStart < 400)
+	{
+		xTaskNotifyGive(xUdpReceiveTaskHandle); // udp íƒœìŠ¤í¬ í´ë§
+        vTaskDelay(pdMS_TO_TICKS(10));
+	}
+	gGcuStatus = ENGAGE;
+	xTaskNotifyGive(xSchedulingTaskHandle);
+	xil_printf("delete -- %s\r\n", pcTaskGetName(NULL));
 	vTaskDelete(NULL);
 }

@@ -19,7 +19,7 @@ void runUartSend()
 
 	tAcbPayload acbSendPayload;
 	acbSendPayload.canadCmd = gAngAccelCmd;
-	acbSendPayload.currentStatus = gModeStatus;
+	acbSendPayload.currentStatus = gGcuStatus;
 	gsmpWrapper(ACB_SEND_MSG_ID, OK, &acbSendPayload);
 	// 전송을 수행한다.
 	sendUartData();

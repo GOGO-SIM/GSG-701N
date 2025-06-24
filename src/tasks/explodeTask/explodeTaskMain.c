@@ -18,7 +18,7 @@ void explodeTaskMain(void *param)
 
     xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 
-    gModeStatus = EXPLODE;
+    gGcuStatus = EXPLODE;
 
     //-------------------------------------------
 
