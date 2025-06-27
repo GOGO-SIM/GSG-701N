@@ -120,5 +120,6 @@ u32 gPassPbitFlag = TRUE;
 /*=======GNC=======*/
 
 volatile BaseType_t gSeekerUpdated = pdFALSE;
+tDVector3 gLdot;
 
 #endif

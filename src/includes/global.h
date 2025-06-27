@@ -171,5 +171,6 @@ extern tSeekerPayload gSeekerPayload;
 /* GNC */
 extern tDVector3 gAngAccelCmd;
 extern volatile BaseType_t gSeekerUpdated;
+extern tDVector3 gLdot;
 
 #endif

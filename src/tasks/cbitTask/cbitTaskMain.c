@@ -150,7 +150,7 @@ static void runCbit(void)
    static int sErrorCount = 0;
    gPassCbitFlag = TRUE;
 
-   if(sErrorCount >= 5)
+   if(sErrorCount >= 50)
    {
       xil_printf(" CBIT Failed : explode();\n");
       xTaskNotifyGive(xExplodeTaskHandle);

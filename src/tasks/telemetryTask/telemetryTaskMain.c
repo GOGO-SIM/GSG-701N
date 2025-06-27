@@ -51,6 +51,7 @@ static void writeFlag()
      sTelemetryPayload.accCmd = gAccCmd;
      sTelemetryPayload.quarternion = gAttitude;
      sTelemetryPayload.controlCmd = gAngAccelCmd;
+     sTelemetryPayload.lDot = gLdot;
  }
 
  static void sendViaUdp()

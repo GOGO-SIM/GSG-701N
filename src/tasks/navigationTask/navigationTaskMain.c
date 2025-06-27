@@ -69,13 +69,14 @@ static void navigationRun()
 	gAttitude = q;
 
 	   // printf("quternion = [%.6f, %.6f, %.6f, %.6f]\r\n", gAttitude.w, gAttitude.x, gAttitude.y, gAttitude.z);
-   gForward = rotateVectorByQuat(q, (tDVector3){1.0, 0.0, 0.0});
+//   gForward = rotateVectorByQuat(q, (tDVector3){1.0, 0.0, 0.0});
 //   printf("forward = [%.6f, %.6f, %.6f]\r\n", gForward.x, gForward.y, gForward.z);
 }
 
 void navigationTaskMain( void *pvParameters )
 {
 	// TODO: move to init Task
+	/* 45도 각도 w x y z [0.92388 0.0 0.38268 0.0] */
 	gAttitude.w = 1.0;
 	gAttitude.x = 0.0;
 	gAttitude.y = 0.0;

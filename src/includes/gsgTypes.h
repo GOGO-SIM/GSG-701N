@@ -103,7 +103,7 @@ typedef struct _tTelemetryData
 	tDVector3 accCmd;
 	tDVector4 quarternion;
 	tDVector3 controlCmd;
-
+	tDVector3 lDot;
 } tTelemetryData;
 #pragma pack(pop)
 
