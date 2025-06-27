@@ -52,6 +52,29 @@ SemaphoreHandle_t xLinkReadySem = NULL;
 static void tcpipInitDone(void *arg);
 void testUdp(void *pvParameters);
 
+int initGpioPs()
+{
+    gGpioConfig = XGpioPs_LookupConfig(XPAR_PS7_GPIO_0_DEVICE_ID);
+    XGpioPs_CfgInitialize(&gGpioPs, gGpioConfig, gGpioConfig->BaseAddr);
+
+    XGpioPs_SetDirectionPin(&gGpioPs, 12, GPIO_OUT);
+    XGpioPs_SetOutputEnablePin(&gGpioPs, 12, GPIO_OUT);
+
+    XGpioPs_SetDirectionPin(&gGpioPs, 11, GPIO_OUT);
+    XGpioPs_SetOutputEnablePin(&gGpioPs, 11, GPIO_OUT);
+
+    XGpioPs_SetDirectionPin(&gGpioPs, 10, GPIO_OUT);
+    XGpioPs_SetOutputEnablePin(&gGpioPs, 10, GPIO_OUT);
+
+    XGpioPs_WritePin(&gGpioPs, 12, GPIO_OFF);
+    XGpioPs_WritePin(&gGpioPs, 10, GPIO_OFF);
+}
+
+int initDistance()
+{
+	gSeekerData.distance = 1e9;
+}
+
 int initUartPs()
 {
     // UART 설정 정보 구조체 포인터
@@ -186,6 +209,9 @@ void initTaskMain(void *pvParameters)
         xil_printf("Failed to create semaphore\r\n");
         vTaskDelete(NULL);
     }
+    initDistance();
+    initGpioPs();
+    xil_printf("GPIO is ready\r\n");
 
     initUartPs();
     xil_printf("UART initialized\r\n");
