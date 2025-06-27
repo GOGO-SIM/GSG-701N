@@ -51,6 +51,7 @@ static void writeFlag()
      sTelemetryPayload.accCmd = gAccCmd;
      sTelemetryPayload.quarternion = gAttitude;
      sTelemetryPayload.controlCmd = gAngAccelCmd;
+     sTelemetryPayload.lDot = gLdot;
  }
 
  static void sendViaUdp()
@@ -60,17 +61,17 @@ static void writeFlag()
      teleSendBuf = netbuf_new();
      if (!teleSendBuf)
      {
-        xil_printf("Failed to Create nebuf\r\n");
+//        xil_printf("Failed to Create nebuf\r\n");
      }
      netbuf_ref(teleSendBuf, gSendBuffer, sTeleMsgLen);
      err = netconn_send(gpUdpClientConn, teleSendBuf);
      if (err != ERR_OK)
      {
-        xil_printf("\nFailed to send UDP packet: %d\r\n\n", err);
+//        xil_printf("\nFailed to send UDP packet: %d\r\n\n", err);
      }
      else
      {
-        xil_printf("\nSent Tele UDP packet to %s:%d\r\n\n", TELEMETRY_IP, TELEMETRY_PORT);
+//        xil_printf("\nSent Tele UDP packet to %s:%d\r\n\n", TELEMETRY_IP, TELEMETRY_PORT);
      }
      netbuf_delete(teleSendBuf);
  }
@@ -90,7 +91,7 @@ static void writeFlag()
      for(;;)
      {
        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+//       xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
        runTelemetry();
      }
  }

@@ -1,20 +1,41 @@
 #include "global.h"
 #include "gncUtil.h"
 
-static TickType_t lastTick;
-static tDVector3  prevLOS;         /* 첫 회차는 각속도 0 */
+static TickType_t lastTick = 0;
+static tDVector3  prevLOS;
 static BaseType_t firstRun;
+static double prevDist = 0.0;
 
 static void guidanceRun()
 {
-	/* (1) Δt 계산 (초) */
 	TickType_t now = xTaskGetTickCount();
-	double dt = (now - lastTick) * portTICK_PERIOD_MS * 1e-3;
-	lastTick  = now;
-	if (dt < 1e-6)
-		dt = 1e-6;
-	tDVector3 currLOS = gSeekerData.los;
-	/* (3) LOS 변화율 Ldot 계산 */
+	double dt;
+
+	if (firstRun == pdTRUE) {
+		dt = 0.040;
+	} else {
+		dt = (double)(now - lastTick) * portTICK_PERIOD_MS / 1000.0;
+	}
+	lastTick = now;
+
+    if (dt <= 0 || dt > 0.040) {
+        dt = 0.020;
+    }
+
+	tDVector3 currLOS = normalize(gSeekerData.los);
+	double currDist = gSeekerData.distance;
+
+	/* 폐쇠속도 V_C 계산 */
+	double V_C = 0.0;
+	if(!firstRun){
+		V_C = -(currDist - prevDist)/dt;
+	}else {
+		V_C = MISSILE_V;
+	}
+
+	prevDist = currDist;
+
+	/* 시선 벡터 변화율 LDOT 계산 */
 	tDVector3 Ldot = {0};
 	if (!firstRun)
 	{
@@ -25,6 +46,7 @@ static void guidanceRun()
 	firstRun = pdFALSE;
 	prevLOS  = currLOS;
 
+	/* 횡가속도 계산*/
 	tDVector3 omega =
 	{
 		currLOS.y*Ldot.z - currLOS.z*Ldot.y,
@@ -33,32 +55,28 @@ static void guidanceRun()
 	};
 
 	tDVector3 a_cmd =
-	{   /* (ω × L) */
+	{
 		omega.y*currLOS.z - omega.z*currLOS.y,
 		omega.z*currLOS.x - omega.x*currLOS.z,
 		omega.x*currLOS.y - omega.y*currLOS.x
 	};
 
-	a_cmd.x *= PN_GAIN * MISSILE_V;    // 스칼라 곱
-	a_cmd.y *= PN_GAIN * MISSILE_V;
-	a_cmd.z *= PN_GAIN * MISSILE_V;
+	a_cmd.x *= PN_GAIN * V_C;
+	a_cmd.y *= PN_GAIN * V_C;
+	a_cmd.z *= PN_GAIN * V_C;
 
-	/* (5) 관성계 → Body 기준 가속도로 변환 */
-	tDVector3 a_body = rotateVectorByQuat(quatConjugate(gAttitude), a_cmd);
-
-	/* (6) (미사일Body 기준) 횡 가속도 명령 */
-	gAccCmd = a_body;
+	gAccCmd = a_cmd;
+	gLdot = Ldot; // 시선벡터 변화율 (텔레메트리용)
 }
 
 void guidanceTaskMain(void *pvParameters)
 {
-	lastTick  = xTaskGetTickCount();
+	lastTick  = 0;
 	firstRun  = pdTRUE;
     for(;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         guidanceRun();
         xTaskNotifyGive(xControlTaskHandle);
     }

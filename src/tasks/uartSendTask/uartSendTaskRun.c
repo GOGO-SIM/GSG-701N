@@ -8,7 +8,7 @@ void runUartSend()
 	{
 		if(++gFailCount[UART_FAIL] >= 10)
 		{
-			explode();
+//			explode();
 		}
 	}
 	else

@@ -17,7 +17,7 @@
 
 static void explode()
 {
-	printf("explode\r\n");
+//	printf("explode\r\n");
 	for (;;) ;
 	return ;
 }
@@ -74,6 +74,7 @@ void handleSeekerMsg(tGsmpMsg* msg)
 		// 3. save valid Seeker data
 		gSeekerData = gSeekerPayload;
 
+		gSeekerUpdated = pdTRUE;
 		// printf("\t[Seeker data] x:%f y:%f z:%f dist:%f\r\n",
 		// 		gSeekerData.los.x,
 		// 		gSeekerData.los.y,
@@ -162,7 +163,7 @@ void udpReceiveTaskMain( void *pvParameters )
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
+//        xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
         udpReceiveRun();
         xTaskNotifyGive(xNavigationTaskHandle);
     }

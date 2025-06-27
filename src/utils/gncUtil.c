@@ -43,3 +43,17 @@ double clamp(double v, double lim)
     return (v >  lim) ?  lim :
            (v < -lim) ? -lim : v;
 }
+
+tDVector3 normalize(tDVector3 v)
+{
+    double mag = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    tDVector3 result = {0};
+
+    if (mag > 1e-9) // 0으로 나누는 것을 방지
+    {
+        result.x = v.x / mag;
+        result.y = v.y / mag;
+        result.z = v.z / mag;
+    }
+    return result;
+}
