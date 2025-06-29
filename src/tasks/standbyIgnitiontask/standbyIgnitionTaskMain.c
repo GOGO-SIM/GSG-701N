@@ -7,7 +7,7 @@ void stanbyIgnitionTaskMain( void *pvParameters )
 {
 	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
-	while (gDistanceFromStart < 400)
+	while (gDistanceFromStart < 15)
 	{
 		xTaskNotifyGive(xUdpReceiveTaskHandle); // udp 태스크 폴링
         vTaskDelay(pdMS_TO_TICKS(10));

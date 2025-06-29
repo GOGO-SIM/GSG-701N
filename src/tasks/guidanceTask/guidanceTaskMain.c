@@ -41,12 +41,13 @@ static void guidanceRun()
 	double currDist = gSeekerData.distance;
 
 	/* 폐쇠속도 Vc 계산 */
-	double V_C = 0.0;
-	if(!firstRun){
-		V_C = -(currDist - prevDist)/dt;
-	}else {
-		V_C = MISSILE_V;
-	}
+	double V_C = 300.0;
+//	double V_C = 0.0;
+//	if(!firstRun){
+//		V_C = -(currDist - prevDist)/dt;
+//	}else {
+//		V_C = MISSILE_V;
+//	}
 
 	prevDist = currDist;
 
@@ -94,6 +95,7 @@ void guidanceTaskMain(void *pvParameters)
     for(;;)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    	xil_printf("RUN -- %s\r\n", pcTaskGetName(NULL));
 
         guidanceRun();
         xTaskNotifyGive(xControlTaskHandle);
