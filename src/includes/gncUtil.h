@@ -10,9 +10,9 @@
 #define MISSILE_V 500.0      /* V_m (m/s) : 고정속도 가정 */
 #define INV_MISSILE_V    (1.0 / MISSILE_V)
 
-#define PN_GAIN   3.88
-#define KP_OMEGA  0.88
-#define KD_OMEGA  0.10
+#define PN_GAIN   2.98 // 3.78 (0.6댐핑 , 1.3토크 , 0.1제어스피드 )   // 3.48
+#define KP_OMEGA  1.45// 2.88            // 1.20
+#define KD_OMEGA  0.22 // 0.48             // 0.65
 
 #define MAX_ALPHA_CMD    10.0
 

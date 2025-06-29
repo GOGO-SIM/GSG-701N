@@ -62,9 +62,7 @@ extern uint32_t gFailCount[4];
 extern uint8_t gSendBuffer[TELEMETRY_MSG_SIZE];
 
 
-// GCU의 현재 모드
-extern int gModeStatus;
-
+// GCU의 현재 상태
 extern tImuData gImuData;
 extern tSeekerData gSeekerData;
 extern tDVector3 gAccCmd;
@@ -102,14 +100,6 @@ extern TaskHandle_t xPbitFailTaskHandle;
 extern TaskHandle_t xExplodeTaskHandle;
 
 /* enum 클래스 정의 */
-enum eGcuStatus
-{
-	NORMAL = 0,
-	STANDBY = 1,
-	PBIT_FAIL = 2,
-	CBIT_FAIL = 3,
-};
-
 enum eFailedUnit
 {
 	UDP_FAIL = 0,
@@ -150,13 +140,12 @@ enum eMsgStatus
 	INTERNAL_ERROR = 2
 };
 
-enum eModeStatus
+enum eGcuStatus
 {
-	WAIT = 0,
+	STANDBY = 0,
 	ENGAGE = 1,
-	SAFE = 2,
-	REEXPLORE = 3,
-	EXPLODE = 4
+	PBIT_FAIL = 2,
+	EXPLODE = 3
 };
 
 /*=====CBIT&PBIT ���� �� �µ�  üũ  ����=====*/
@@ -187,5 +176,6 @@ extern tEchoPayload gAcbEchoRecvData;
 /* GNC */
 extern tDVector3 gAngAccelCmd;
 extern volatile BaseType_t gSeekerUpdated;
+extern double gDistanceFromStart;
 
 #endif
